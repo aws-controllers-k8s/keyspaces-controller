@@ -1,0 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - common
+  - bases/keyspaces.services.k8s.aws_keyspaces.yaml
+  - bases/keyspaces.services.k8s.aws_tables.yaml

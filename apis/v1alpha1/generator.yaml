@@ -1,0 +1,36 @@
+ignore:
+  resource_names:
+    #  - Keyspace
+    #  - Table
+
+resources:
+  Keyspace:
+    exceptions:
+      terminal_codes:
+        - InvalidParameterException
+        - AccessDeniedException
+        - IncompleteSignature
+        - InternalFailure
+        - InvalidAction
+        - InvalidClientTokenId
+        - NotAuthorized
+        - OptInRequired
+        - RequestExpired
+        - ServiceUnavailable
+        - ThrottlingException
+        - ValidationError
+    hooks:
+  Table:
+    exceptions:
+      errors:
+        404:
+          code: ResourceNotFoundException
+      terminal_codes:
+        - InvalidParameterException
+    hooks:
+#      sdk_delete_pre_build_request:
+#        template_path: hooks/table/sdk_delete_pre_build_request.go.tpl
+#      sdk_create_post_set_output:
+#        template_path: hooks/table/sdk_create_post_set_output.go.tpl
+#      sdk_read_one_post_set_output:
+#        template_path: hooks/table/sdk_read_one_post_set_output.go.tpl
