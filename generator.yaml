@@ -22,9 +22,6 @@ resources:
     hooks:
   Table:
     exceptions:
-      errors:
-        404:
-          code: ResourceNotFoundException
       terminal_codes:
         - InvalidParameterException
     hooks:
