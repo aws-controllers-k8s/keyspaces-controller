@@ -80,7 +80,7 @@ func (rm *resourceManager) sdkFind(
 		if reqErr, ok := ackerr.AWSRequestFailure(err); ok && reqErr.StatusCode() == 404 {
 			return nil, ackerr.NotFound
 		}
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "UNKNOWN" {
+		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "ResourceNotFoundException" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -357,6 +357,17 @@ func (rm *resourceManager) updateConditions(
 // and if the exception indicates that it is a Terminal exception
 // 'Terminal' exception are specified in generator configuration
 func (rm *resourceManager) terminalAWSError(err error) bool {
-	// No terminal_errors specified for this resource in generator config
-	return false
+	if err == nil {
+		return false
+	}
+	awsErr, ok := ackerr.AWSError(err)
+	if !ok {
+		return false
+	}
+	switch awsErr.Code() {
+	case "InvalidParameterException":
+		return true
+	default:
+		return false
+	}
 }
