@@ -85,6 +85,7 @@ class TestKeyspace:
         (ref, res) = keyspace_basic
 
         keyspace_name = res["spec"]["keyspaceName"]
+        time.sleep(CREATE_WAIT_AFTER_SECONDS)
         condition.assert_synced(ref)
 
         # Check Keyspace exists
