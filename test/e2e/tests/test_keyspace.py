@@ -85,6 +85,10 @@ class TestKeyspace:
         (ref, res) = keyspace_basic
 
         keyspace_name = res["spec"]["keyspaceName"]
+        logging.info(f"Keyspace name: {keyspace_name}")
+        logging.info(f"Keyspace ref: {ref}")
+        logging.info(f"Keyspace res: {res}")
+        k8s.create_custom_resource(ref, res)
         time.sleep(CREATE_WAIT_AFTER_SECONDS)
         condition.assert_synced(ref)
 
