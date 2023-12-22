@@ -103,8 +103,10 @@ def wait_until_deleted(
 
       latest = get(keyspace_name)
       if latest is None:
+          logging.info("Keyspace %s deleted", keyspace_name)
           break
       
+      logging.info("Keyspace %s still exists", latest)
 
 def get(keyspace_name):
     """Returns a dict containing the Role record from the keyspaces API.
