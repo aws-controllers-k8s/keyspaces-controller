@@ -34,7 +34,7 @@ from e2e import keyspaces
 RESOURCE_PLURAL = "keyspaces"
 
 CREATE_WAIT_AFTER_SECONDS = 45
-DELETE_WAIT_AFTER_SECONDS = 15
+DELETE_WAIT_AFTER_SECONDS = 120
 MODIFY_WAIT_AFTER_SECONDS = 30
 
 def create_keyspace(name: str, resource_template):

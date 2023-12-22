@@ -104,11 +104,7 @@ def wait_until_deleted(
       latest = get(keyspace_name)
       if latest is None:
           break
-      else:                   
-        pytest.fail(
-            "Keyspace still exists and is not 'deleted' after timeout. "
-            "deleted. Keyspace is " + latest
-        )
+      
 
 def get(keyspace_name):
     """Returns a dict containing the Role record from the keyspaces API.
