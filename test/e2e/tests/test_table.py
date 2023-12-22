@@ -80,6 +80,7 @@ def create_table(name: str, keyspace_name: str, resource_template):
 
     # Create table
     k8s.create_custom_resource(table_reference, resource_data)
+    time.sleep(CREATE_WAIT_AFTER_SECONDS)
     table_resource = k8s.wait_resource_consumed_by_controller(table_reference)
 
     assert table_resource is not None
