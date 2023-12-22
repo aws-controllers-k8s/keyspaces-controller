@@ -64,7 +64,7 @@ def create_keyspace(name: str, resource_template):
 
 @pytest.fixture(scope="module")
 def keyspace_basic():
-    resource_name = random_suffix_name("keyspace-basic", 32)
+    resource_name = random_suffix_name("keyspace", 32)
     (ref, cr) = create_keyspace(resource_name, "keyspace_basic")
 
     yield ref, cr
