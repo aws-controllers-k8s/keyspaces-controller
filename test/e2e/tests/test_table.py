@@ -102,8 +102,6 @@ def table_basic():
         assert deleted_table
     except:
         pass
-    
-    yield keyspace_ref, keyspace_cr
     try:
         _, deleted_keyspace = k8s.delete_custom_resource(keyspace_ref, wait_periods=3, period_length=10)
         assert deleted_keyspace
