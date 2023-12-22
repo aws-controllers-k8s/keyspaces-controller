@@ -36,6 +36,32 @@ CREATE_WAIT_AFTER_SECONDS = 45
 DELETE_WAIT_AFTER_SECONDS = 15
 MODIFY_WAIT_AFTER_SECONDS = 30
 
+def create_keyspace(name: str, resource_template):
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["KEYSPACE_NAME"] = name
+
+    # load resource
+    resource_data = load_keyspaces_resource(
+        resource_template,
+        additional_replacements=replacements,
+    )
+    logging.debug(resource_data)
+
+    keyspace_reference = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, "keyspaces",
+        name, namespace="default",
+    )
+
+    # Create keyspace
+    k8s.create_custom_resource(keyspace_reference, resource_data)
+    time.sleep(CREATE_WAIT_AFTER_SECONDS)
+    keyspace_resource = k8s.wait_resource_consumed_by_controller(keyspace_reference)
+
+    assert keyspace_reference is not None
+    assert k8s.get_resource_exists(keyspace_reference)
+
+    return keyspace_reference, keyspace_resource
+
 def create_table(name: str, keyspace_name: str, resource_template):
     replacements = REPLACEMENT_VALUES.copy()
     replacements["TABLE_NAME"] = name
@@ -65,6 +91,8 @@ def create_table(name: str, keyspace_name: str, resource_template):
 def table_basic():
     resource_name = random_suffix_name("table", 32, "test")
     keyspace_resource_name = random_suffix_name("keyspace", 32, "test")
+
+    create_keyspace(keyspace_resource_name, "keyspace_basic")
 
     (ref, cr) = create_table(resource_name, keyspace_resource_name, "table_basic")
 
