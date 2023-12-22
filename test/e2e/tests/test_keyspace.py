@@ -64,7 +64,7 @@ def create_keyspace(name: str, resource_template):
 
 @pytest.fixture(scope="module")
 def keyspace_basic():
-    resource_name = random_suffix_name("keyspace", 32)
+    resource_name = random_suffix_name("keyspace", 16)
     (ref, cr) = create_keyspace(resource_name, "keyspace_basic")
 
     yield ref, cr
@@ -89,7 +89,7 @@ class TestKeyspace:
       except c.exceptions.ResourceNotFoundException:
           logging.info("Keyspace %s not found", keyspace_name)
           return None
-      except c.exceptions.InvalidParameterValueException:
+      except c.exceptions.ValidationException:
           logging.info(
             "Couldn't verify %s exists. Here's why: %s",
             keyspace_name,
