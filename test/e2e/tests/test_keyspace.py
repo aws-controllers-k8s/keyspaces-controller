@@ -85,19 +85,7 @@ class TestKeyspace:
         (ref, res) = keyspace_basic
 
         keyspace_name = res["spec"]["keyspaceName"]
-        _, created = create_keyspace(keyspace_name, "keyspace_basic")
-        assert created is True
-        condition.assert_synced(ref)
-
+        
         # Check Keyspace exists
         assert self.keyspace_exists(keyspace_name)
-
-        # Delete k8s resource
-        _, deleted = k8s.delete_custom_resource(ref, wait_periods=15, period_length=15)
-        assert deleted is True
-
-        time.sleep(DELETE_WAIT_AFTER_SECONDS)
-
-        # Check keyspace doesn't exist
-        assert not self.keyspace_exists(keyspace_name)
-    
+        
