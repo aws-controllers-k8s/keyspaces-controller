@@ -47,6 +47,26 @@ rules:
   - patch
   - watch
 - apiGroups:
+  - keyspaces.services.k8s.aws
+  resources:
+  - keyspaces
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - keyspaces.services.k8s.aws
+  resources:
+  - keyspaces/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - services.k8s.aws
   resources:
   - adoptedresources

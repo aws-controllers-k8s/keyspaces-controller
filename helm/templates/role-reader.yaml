@@ -9,6 +9,7 @@ rules:
 - apiGroups:
   - keyspaces.services.k8s.aws
   resources:
+  - keyspaces
   verbs:
   - get
   - list

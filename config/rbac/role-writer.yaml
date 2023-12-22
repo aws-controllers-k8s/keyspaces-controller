@@ -9,6 +9,7 @@ rules:
 - apiGroups:
   - keyspaces.services.k8s.aws
   resources:
+  - keyspaces
   verbs:
   - create
   - delete
@@ -20,6 +21,7 @@ rules:
 - apiGroups:
   - keyspaces.services.k8s.aws
   resources:
+  - keyspaces
   verbs:
   - get
   - patch

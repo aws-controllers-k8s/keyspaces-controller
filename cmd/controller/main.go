@@ -35,6 +35,8 @@ import (
 	svctypes "github.com/aws-controllers-k8s/keyspaces-controller/apis/v1alpha1"
 	svcresource "github.com/aws-controllers-k8s/keyspaces-controller/pkg/resource"
 
+	_ "github.com/aws-controllers-k8s/keyspaces-controller/pkg/resource/keyspace"
+
 	"github.com/aws-controllers-k8s/keyspaces-controller/pkg/version"
 )
 
