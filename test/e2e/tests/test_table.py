@@ -24,8 +24,7 @@ from acktest.k8s import resource as k8s
 from acktest import tags
 from e2e import (
     service_marker, CRD_GROUP, CRD_VERSION,
-    load_keyspaces_resource, wait_for_cr_status, 
-    get_resource_tags,
+    load_keyspaces_resource, 
 )
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import condition
@@ -85,14 +84,6 @@ def create_table(name: str, keyspace_name: str, resource_template):
 
     assert table_resource is not None
     assert k8s.get_resource_exists(table_reference)
-
-    wait_for_cr_status(
-        table_reference,
-        "tableStatus",
-        "ACTIVE",
-        90,
-        3,
-    )
 
     return table_reference, table_resource
 
