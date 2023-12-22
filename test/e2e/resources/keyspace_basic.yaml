@@ -6,5 +6,3 @@ spec:
   keyspaceName: $KEYSPACE_NAME
   replicationSpecification:
     replicationStrategy: "SINGLE_REGION"
-    regionList:
-      - "us-east-1"
