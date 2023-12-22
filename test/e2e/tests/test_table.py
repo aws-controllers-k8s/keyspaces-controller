@@ -100,9 +100,12 @@ def table_basic():
     try:
         _, deleted_table = k8s.delete_custom_resource(ref, wait_periods=3, period_length=10)
         assert deleted_table
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
     except:
         pass
     
+    table.wait_until_deleted(keyspace_resource_name, resource_name)
+
 @service_marker
 @pytest.mark.canary
 class TestTable:
@@ -118,6 +121,3 @@ class TestTable:
 
         # Check Table exists
         assert self.table_exists(keyspace_name, table_name)
-
-    
-    

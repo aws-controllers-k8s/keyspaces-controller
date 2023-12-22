@@ -85,6 +85,7 @@ def wait_until(
         from e2e.table import wait_until, status_matches
 
         wait_until(
+            keyspace_name,
             table_name,
             status_matches("ACTIVE"),
         )
@@ -100,6 +101,47 @@ def wait_until(
             pytest.fail("failed to match table before timeout")
         time.sleep(interval_seconds)
 
+def wait_until_deleted(
+        keyspace_name: str,
+        table_name: str,
+        timeout_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS,
+        interval_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS,
+    ) -> None:
+    """Waits until Table with a supplied table_name is no longer returned from
+    the Keyspaces API.
+
+    Usage:
+        from e2e.table import wait_until_deleted
+
+        wait_until_deleted(
+          keyspace_name,
+          table_name
+        )
+
+    Raises:
+        pytest.fail upon timeout or if the Table goes to any other status
+        other than 'deleting'
+    """
+    now = datetime.datetime.now()
+    timeout = now + datetime.timedelta(seconds=timeout_seconds)
+
+    while True:
+        if datetime.datetime.now() >= timeout:
+            pytest.fail(
+                "Timed out waiting for Table to be "
+                "deleted in Keyspaces API"
+            )
+        time.sleep(interval_seconds)
+
+        latest = get(keyspace_name,table_name)
+        if latest is None:
+            break
+
+        if latest['Status'] != "deleting":
+            pytest.fail(
+                "Status is not 'deleting' for Table that was "
+                "deleted. Status is " + latest['Status']
+            )
 
 def get(keyspace_name,table_name):
     """Returns a dict containing the Role record from the keyspaces API.

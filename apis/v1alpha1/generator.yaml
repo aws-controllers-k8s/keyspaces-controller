@@ -12,6 +12,9 @@ resources:
       terminal_codes:
         - InvalidParameterException
   Table:
+    fields:
+      ResourceARN:
+        is_arn: true
     exceptions:
       errors:
         404:

@@ -72,8 +72,11 @@ def keyspace_basic():
     try:
         _, deleted = k8s.delete_custom_resource(ref, wait_periods=3, period_length=10)
         assert deleted
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
     except:
         pass
+    
+    keyspaces.wait_until_deleted(resource_name)
 
 @service_marker
 @pytest.mark.canary

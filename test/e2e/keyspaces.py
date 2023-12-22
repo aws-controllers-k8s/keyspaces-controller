@@ -71,6 +71,43 @@ def wait_until(
             pytest.fail("failed to match keyspace before timeout")
         time.sleep(interval_seconds)
 
+def wait_until_deleted(
+        keyspace_name: str,
+        timeout_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS,
+        interval_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS,
+    ) -> None:
+    """Waits until Keyspace with a supplied keyspace_name is no longer returned from
+    the Keyspaces API.
+
+    Usage:
+        from e2e.keyspace import wait_until_deleted
+
+        wait_until_deleted(keyspace_name)
+
+    Raises:
+        pytest.fail upon timeout or if the Keyspace goes to any other status
+        other than 'deleting'
+    """
+    now = datetime.datetime.now()
+    timeout = now + datetime.timedelta(seconds=timeout_seconds)
+
+    while True:
+        if datetime.datetime.now() >= timeout:
+            pytest.fail(
+                "Timed out waiting for Keyspace to be "
+                "deleted in Keyspaces API"
+            )
+        time.sleep(interval_seconds)
+
+        latest = get(keyspace_name)
+        if latest is None:
+            break
+
+        if latest['Status'] != "deleting":
+            pytest.fail(
+                "Status is not 'deleting' for Keyspace that was "
+                "deleted. Status is " + latest['Status']
+            )
 
 def get(keyspace_name):
     """Returns a dict containing the Role record from the keyspaces API.

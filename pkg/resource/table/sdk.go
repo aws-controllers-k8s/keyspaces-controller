@@ -154,10 +154,12 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.PointInTimeRecovery = nil
 	}
+	if ko.Status.ACKResourceMetadata == nil {
+		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
+	}
 	if resp.ResourceArn != nil {
-		ko.Status.ResourceARN = resp.ResourceArn
-	} else {
-		ko.Status.ResourceARN = nil
+		arn := ackv1alpha1.AWSResourceName(*resp.ResourceArn)
+		ko.Status.ACKResourceMetadata.ARN = &arn
 	}
 	if resp.SchemaDefinition != nil {
 		f9 := &svcapitypes.SchemaDefinition{}
@@ -289,10 +291,12 @@ func (rm *resourceManager) sdkCreate(
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
 
+	if ko.Status.ACKResourceMetadata == nil {
+		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
+	}
 	if resp.ResourceArn != nil {
-		ko.Status.ResourceARN = resp.ResourceArn
-	} else {
-		ko.Status.ResourceARN = nil
+		arn := ackv1alpha1.AWSResourceName(*resp.ResourceArn)
+		ko.Status.ACKResourceMetadata.ARN = &arn
 	}
 
 	rm.setStatusDefaults(ko)
@@ -468,10 +472,12 @@ func (rm *resourceManager) sdkUpdate(
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
 
+	if ko.Status.ACKResourceMetadata == nil {
+		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
+	}
 	if resp.ResourceArn != nil {
-		ko.Status.ResourceARN = resp.ResourceArn
-	} else {
-		ko.Status.ResourceARN = nil
+		arn := ackv1alpha1.AWSResourceName(*resp.ResourceArn)
+		ko.Status.ACKResourceMetadata.ARN = &arn
 	}
 
 	rm.setStatusDefaults(ko)

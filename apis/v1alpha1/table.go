@@ -151,10 +151,6 @@ type TableStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
-	// The unique identifier of the table in the format of an Amazon Resource Name
-	// (ARN).
-	// +kubebuilder:validation:Optional
-	ResourceARN *string `json:"resourceARN,omitempty"`
 }
 
 // Table is the Schema for the Tables API

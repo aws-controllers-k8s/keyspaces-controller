@@ -274,10 +274,6 @@ spec:
                   - type
                   type: object
                 type: array
-              resourceARN:
-                description: The unique identifier of the table in the format of an
-                  Amazon Resource Name (ARN).
-                type: string
             type: object
         type: object
     served: true
