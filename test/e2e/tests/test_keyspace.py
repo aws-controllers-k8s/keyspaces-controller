@@ -76,8 +76,6 @@ def keyspace_basic():
     except:
         pass
     
-    keyspaces.wait_until_deleted(resource_name)
-
 @service_marker
 @pytest.mark.canary
 class TestKeyspace:
