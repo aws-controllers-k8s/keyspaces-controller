@@ -92,7 +92,7 @@ def table_basic():
     resource_name = random_suffix_name("table", 32, "test")
     keyspace_resource_name = random_suffix_name("keyspace", 32, "test")
 
-    (keyspace_ref, keyspace_cr) = create_keyspace(keyspace_resource_name, "keyspace_basic")
+    create_keyspace(keyspace_resource_name, "keyspace_basic")
 
     (ref, cr) = create_table(resource_name, keyspace_resource_name, "table_basic")
 
@@ -100,11 +100,6 @@ def table_basic():
     try:
         _, deleted_table = k8s.delete_custom_resource(ref, wait_periods=3, period_length=10)
         assert deleted_table
-    except:
-        pass
-    try:
-        _, deleted_keyspace = k8s.delete_custom_resource(keyspace_ref, wait_periods=3, period_length=10)
-        assert deleted_keyspace
     except:
         pass
     
