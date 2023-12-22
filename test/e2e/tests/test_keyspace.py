@@ -81,7 +81,7 @@ class TestKeyspace:
     def keyspace_exists(self, keyspace_name: str) -> bool:
         return keyspaces.get(keyspace_name) is not None
 
-    def test_create_delete(self, keyspace_basic):
+    def test_create_delete_kesypace(self, keyspace_basic):
         (ref, res) = keyspace_basic
 
         keyspace_name = res["spec"]["keyspaceName"]

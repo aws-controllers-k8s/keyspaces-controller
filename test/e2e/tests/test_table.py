@@ -114,7 +114,7 @@ class TestTable:
     def table_exists(self, keyspace_name: str, table_name: str) -> bool:
         return table.get(keyspace_name, table_name) is not None
 
-    def test_create_delete(self, table_basic):
+    def test_create_delete_table(self, table_basic):
         (ref, res) = table_basic
 
         keyspace_name = res["spec"]["keyspaceName"]
