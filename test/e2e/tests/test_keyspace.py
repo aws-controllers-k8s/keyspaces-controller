@@ -18,8 +18,10 @@ import pytest
 import time
 import logging
 import time
+import boto3
 
 from acktest.resources import random_suffix_name
+from acktest.aws.identity import get_region
 from acktest.k8s import resource as k8s
 from acktest import tags
 from e2e import (
@@ -75,6 +77,26 @@ def keyspace_basic():
 @service_marker
 @pytest.mark.canary
 class TestKeyspace:
+    def keyspace_exists(self, keyspace_name: str) -> bool:
+      """Returns a dict containing the Role record from the keyspaces API.
+
+      If no such Keyspace exists, returns None.
+      """
+      c = boto3.client('keyspaces', region_name=get_region())
+      try:
+          resp = c.get_keyspace(keyspaceName=keyspace_name)
+          return resp is not None
+      except c.exceptions.ResourceNotFoundException:
+          logging.info("Keyspace %s not found", keyspace_name)
+          return None
+      except c.exceptions.InvalidParameterValueException:
+          logging.info(
+            "Couldn't verify %s exists. Here's why: %s",
+            keyspace_name,
+            c.exceptions
+          )
+          return None
+
     def test_create_delete(self, keyspace_basic):
         (ref, res) = keyspace_basic
 
