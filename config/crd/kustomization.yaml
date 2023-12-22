@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - common
   - bases/keyspaces.services.k8s.aws_keyspaces.yaml
+  - bases/keyspaces.services.k8s.aws_tables.yaml

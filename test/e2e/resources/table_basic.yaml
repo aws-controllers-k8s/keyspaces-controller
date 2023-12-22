@@ -1,0 +1,26 @@
+kind: Table
+apiVersion: keyspaces.services.k8s.aws/v1alpha1
+metadata:
+  name: $TABLE_NAME
+spec:
+  keyspaceName: $KEYSPACE_NAME
+  tableName: $TABLE_NAME
+  pointInTimeRecovery:
+    status: "ENABLED"
+  capacitySpecification:
+    throughputMode: "PAY_PER_REQUEST"
+  schemaDefinition:
+    partitionKeys:
+      - name: "id"
+    clusteringKeys:
+      - name: "name"
+        orderBy: "ASC"
+    staticColumns:
+      - name: "description"
+    allColumns:
+      - name: "id"
+        type_: "uuid"
+      - name: "name"
+        type_: "text"
+      - name: "description"
+        type_: "text"

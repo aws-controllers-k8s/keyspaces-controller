@@ -49,16 +49,16 @@ const (
 	SortOrder_DESC SortOrder = "DESC"
 )
 
-type TableStatus string
+type TableStatus_SDK string
 
 const (
-	TableStatus_ACTIVE                              TableStatus = "ACTIVE"
-	TableStatus_CREATING                            TableStatus = "CREATING"
-	TableStatus_UPDATING                            TableStatus = "UPDATING"
-	TableStatus_DELETING                            TableStatus = "DELETING"
-	TableStatus_DELETED                             TableStatus = "DELETED"
-	TableStatus_RESTORING                           TableStatus = "RESTORING"
-	TableStatus_INACCESSIBLE_ENCRYPTION_CREDENTIALS TableStatus = "INACCESSIBLE_ENCRYPTION_CREDENTIALS"
+	TableStatus_SDK_ACTIVE                              TableStatus_SDK = "ACTIVE"
+	TableStatus_SDK_CREATING                            TableStatus_SDK = "CREATING"
+	TableStatus_SDK_UPDATING                            TableStatus_SDK = "UPDATING"
+	TableStatus_SDK_DELETING                            TableStatus_SDK = "DELETING"
+	TableStatus_SDK_DELETED                             TableStatus_SDK = "DELETED"
+	TableStatus_SDK_RESTORING                           TableStatus_SDK = "RESTORING"
+	TableStatus_SDK_INACCESSIBLE_ENCRYPTION_CREDENTIALS TableStatus_SDK = "INACCESSIBLE_ENCRYPTION_CREDENTIALS"
 )
 
 type ThroughputMode string
