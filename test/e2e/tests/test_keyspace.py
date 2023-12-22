@@ -65,7 +65,7 @@ def create_keyspace(name: str, resource_template):
 
 @pytest.fixture(scope="module")
 def keyspace_basic():
-    resource_name = random_suffix_name("keyspace", 16, "test")
+    resource_name = random_suffix_name("keyspace", 32, "test")
     (ref, cr) = create_keyspace(resource_name, "keyspace_basic")
 
     yield ref, cr
@@ -85,7 +85,26 @@ class TestKeyspace:
         (ref, res) = keyspace_basic
 
         keyspace_name = res["spec"]["keyspaceName"]
-        
+
+        replacements = REPLACEMENT_VALUES.copy()
+        replacements["KEYSPACE_NAME"] = keyspace_name
+
+        # load resource
+        resource_data = load_keyspaces_resource(
+            "keyspace_basic",
+            additional_replacements=replacements,
+        )
+        logging.debug(resource_data)
+
+        keyspace_reference = k8s.CustomResourceReference(
+            CRD_GROUP, CRD_VERSION, "keyspaces",
+            keyspace_name, namespace="default",
+        )
+
+        # Create keyspace
+        k8s.create_custom_resource(keyspace_reference, resource_data)
+        time.sleep(CREATE_WAIT_AFTER_SECONDS)
+        k8s.wait_resource_consumed_by_controller(keyspace_reference)
+
         # Check Keyspace exists
         assert self.keyspace_exists(keyspace_name)
-        
