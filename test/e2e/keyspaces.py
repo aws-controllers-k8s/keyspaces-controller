@@ -72,7 +72,7 @@ def wait_until(
         if datetime.datetime.now() >= timeout:
             pytest.fail("failed to match keyspace before timeout")
         time.sleep(interval_seconds)
-
+    
 def wait_until_deleted(
         keyspace_name: str,
         timeout_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS,
@@ -94,22 +94,21 @@ def wait_until_deleted(
     timeout = now + datetime.timedelta(seconds=timeout_seconds)
 
     while True:
-        if datetime.datetime.now() >= timeout:
-            pytest.fail(
-                "Timed out waiting for Keyspace to be "
-                "deleted in Keyspaces API"
-            )
-        time.sleep(interval_seconds)
+      if datetime.datetime.now() >= timeout:
+          pytest.fail(
+              "Timed out waiting for Keyspace to be "
+              "deleted in Keyspaces API"
+          )
+      time.sleep(interval_seconds)
 
-        latest = get(keyspace_name)
-        if latest is None:
-            break
-
-        if latest['Status'] != "deleting":
-            pytest.fail(
-                "Status is not 'deleting' for Keyspace that was "
-                "deleted. Status is " + latest['Status']
-            )
+      latest = get(keyspace_name)
+      if latest is None:
+          break
+      else:                   
+        pytest.fail(
+            "Keyspace still exists and is not 'deleted' after timeout. "
+            "deleted. Keyspace is " + latest
+        )
 
 def get(keyspace_name):
     """Returns a dict containing the Role record from the keyspaces API.

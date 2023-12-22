@@ -139,10 +139,10 @@ def wait_until_deleted(
         if latest is None:
             break
 
-        if latest['Status'] != "deleting":
+        if latest['status'] != "DELETING":
             pytest.fail(
                 "Status is not 'deleting' for Table that was "
-                "deleted. Status is " + latest['Status']
+                "deleted. Status is " + latest['status']
             )
 
 def get(keyspace_name,table_name):
@@ -153,7 +153,7 @@ def get(keyspace_name,table_name):
     c = boto3.client('keyspaces', region_name=get_region())
     try:
         resp = c.get_table(keyspaceName=keyspace_name, tableName=table_name)
-        return resp['tableName']
+        return resp
     except c.exceptions.ResourceNotFoundException:
         logging.info("Table %s not found", table_name)
         return None
