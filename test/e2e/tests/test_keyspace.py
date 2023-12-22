@@ -86,25 +86,5 @@ class TestKeyspace:
 
         keyspace_name = res["spec"]["keyspaceName"]
 
-        replacements = REPLACEMENT_VALUES.copy()
-        replacements["KEYSPACE_NAME"] = keyspace_name
-
-        # load resource
-        resource_data = load_keyspaces_resource(
-            "keyspace_basic",
-            additional_replacements=replacements,
-        )
-        logging.debug(resource_data)
-
-        keyspace_reference = k8s.CustomResourceReference(
-            CRD_GROUP, CRD_VERSION, "keyspaces",
-            keyspace_name, namespace="default",
-        )
-
-        # Create keyspace
-        k8s.create_custom_resource(keyspace_reference, resource_data)
-        time.sleep(CREATE_WAIT_AFTER_SECONDS)
-        k8s.wait_resource_consumed_by_controller(keyspace_reference)
-
         # Check Keyspace exists
         assert self.keyspace_exists(keyspace_name)
