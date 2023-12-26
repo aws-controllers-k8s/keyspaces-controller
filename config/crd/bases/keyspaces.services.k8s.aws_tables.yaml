@@ -274,6 +274,8 @@ spec:
                   - type
                   type: object
                 type: array
+              status:
+                type: string
             type: object
         type: object
     served: true

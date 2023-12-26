@@ -15,6 +15,9 @@ resources:
     fields:
       ResourceARN:
         is_arn: true
+      Status:
+        type: string
+        is_read_only: true
     exceptions:
       errors:
         404:

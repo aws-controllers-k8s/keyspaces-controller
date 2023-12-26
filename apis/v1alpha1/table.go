@@ -151,6 +151,8 @@ type TableStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
+	// +kubebuilder:validation:Optional
+	Status *string `json:"status,omitempty"`
 }
 
 // Table is the Schema for the Tables API
