@@ -5,6 +5,9 @@ ignore:
 
 resources:
   Keyspace:
+    fields:
+      ReplicationSpecification:
+        is_immutable: true
     exceptions:
       errors:
         404:
