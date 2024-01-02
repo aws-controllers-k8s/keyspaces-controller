@@ -13,7 +13,7 @@ description: |-
   **About Amazon Keyspaces**
 
 
-  {ADD YOUR DESCRIPTION HERE}
+  Amazon Keyspaces (for Apache Cassandra) is a scalable, highly available, and managed Apache Cassandra–compatible database service. With Amazon Keyspaces, you don’t have to provision, patch, or manage servers, and you don’t have to install, maintain, or operate software.
 
 
   **About the AWS Controllers for Kubernetes**
@@ -28,13 +28,13 @@ description: |-
 
   Please follow the following link: [Red Hat OpenShift](https://aws-controllers-k8s.github.io/community/docs/user-docs/openshift/)
 samples:
-- kind: ExampleCustomKind
+- kind: Keyspace
   spec: '{}'
-- kind: SecondExampleCustomKind
+- kind: Table
   spec: '{}'
 maintainers:
 - name: "keyspaces maintainer team"
   email: "ack-maintainers@amazon.com"
 links:
 - name: Amazon Keyspaces Developer Resources
-  url: https://aws.amazon.com/Keyspaces/developer-resources/
+  url: https://aws.amazon.com/keyspaces/resources/
