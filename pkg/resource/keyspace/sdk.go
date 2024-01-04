@@ -371,3 +371,15 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		return false
 	}
 }
+
+// getImmutableFieldChanges returns list of immutable fields from the
+func (rm *resourceManager) getImmutableFieldChanges(
+	delta *ackcompare.Delta,
+) []string {
+	var fields []string
+	if delta.DifferentAt("Spec.ReplicationSpecification") {
+		fields = append(fields, "ReplicationSpecification")
+	}
+
+	return fields
+}

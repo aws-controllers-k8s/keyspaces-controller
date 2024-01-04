@@ -217,6 +217,11 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.SchemaDefinition = nil
 	}
+	if resp.Status != nil {
+		ko.Status.Status = resp.Status
+	} else {
+		ko.Status.Status = nil
+	}
 	if resp.TableName != nil {
 		ko.Spec.TableName = resp.TableName
 	} else {
