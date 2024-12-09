@@ -8,7 +8,7 @@ roleRef:
   name: ack-namespaces-cache-keyspaces-controller
 subjects:
 - kind: ServiceAccount
-  name: ack-keyspaces-controller
+  name: {{ include "ack-keyspaces-controller.service-account.name" . }}
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -22,5 +22,5 @@ roleRef:
   name: ack-configmaps-cache-keyspaces-controller
 subjects:
 - kind: ServiceAccount
-  name: ack-keyspaces-controller
+  name: {{ include "ack-keyspaces-controller.service-account.name" . }}
   namespace: {{ .Release.Namespace }}
