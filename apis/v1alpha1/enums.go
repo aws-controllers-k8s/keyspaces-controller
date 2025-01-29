@@ -28,6 +28,15 @@ const (
 	EncryptionType_AWS_OWNED_KMS_KEY        EncryptionType = "AWS_OWNED_KMS_KEY"
 )
 
+type KeyspaceStatus_SDK string
+
+const (
+	KeyspaceStatus_SDK_ACTIVE   KeyspaceStatus_SDK = "ACTIVE"
+	KeyspaceStatus_SDK_CREATING KeyspaceStatus_SDK = "CREATING"
+	KeyspaceStatus_SDK_UPDATING KeyspaceStatus_SDK = "UPDATING"
+	KeyspaceStatus_SDK_DELETING KeyspaceStatus_SDK = "DELETING"
+)
+
 type PointInTimeRecoveryStatus string
 
 const (
@@ -72,4 +81,13 @@ type TimeToLiveStatus string
 
 const (
 	TimeToLiveStatus_ENABLED TimeToLiveStatus = "ENABLED"
+)
+
+type TypeStatus string
+
+const (
+	TypeStatus_ACTIVE    TypeStatus = "ACTIVE"
+	TypeStatus_CREATING  TypeStatus = "CREATING"
+	TypeStatus_DELETING  TypeStatus = "DELETING"
+	TypeStatus_RESTORING TypeStatus = "RESTORING"
 )
