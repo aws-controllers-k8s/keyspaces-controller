@@ -2,7 +2,11 @@ ignore:
   resource_names:
       # - Keyspace
       # - Table
-
+      - Types
+      - Type
+  field_paths:
+    - CreateTableInput.AutoScalingSpecification
+    - CreateTableInput.ReplicaSpecifications
 resources:
   Keyspace:
     fields:
@@ -12,8 +16,6 @@ resources:
       errors:
         404:
           code: ResourceNotFoundException
-      terminal_codes:
-        - InvalidParameterException
   Table:
     fields:
       ResourceARN:
@@ -25,5 +27,3 @@ resources:
       errors:
         404:
           code: ResourceNotFoundException
-      terminal_codes:
-        - InvalidParameterException

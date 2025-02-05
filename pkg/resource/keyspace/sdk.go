@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/keyspaces"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/keyspaces"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/keyspaces/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.Keyspaces{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.Keyspace{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -74,13 +76,11 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	var resp *svcsdk.GetKeyspaceOutput
-	resp, err = rm.sdkapi.GetKeyspaceWithContext(ctx, input)
+	resp, err = rm.sdkapi.GetKeyspace(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "GetKeyspace", err)
 	if err != nil {
-		if reqErr, ok := ackerr.AWSRequestFailure(err); ok && reqErr.StatusCode() == 404 {
-			return nil, ackerr.NotFound
-		}
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "ResourceNotFoundException" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "ResourceNotFoundException" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -123,7 +123,7 @@ func (rm *resourceManager) newDescribeRequestPayload(
 	res := &svcsdk.GetKeyspaceInput{}
 
 	if r.ko.Spec.KeyspaceName != nil {
-		res.SetKeyspaceName(*r.ko.Spec.KeyspaceName)
+		res.KeyspaceName = r.ko.Spec.KeyspaceName
 	}
 
 	return res, nil
@@ -148,7 +148,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateKeyspaceOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateKeyspaceWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateKeyspace(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateKeyspace", err)
 	if err != nil {
 		return nil, err
@@ -176,37 +176,31 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateKeyspaceInput{}
 
 	if r.ko.Spec.KeyspaceName != nil {
-		res.SetKeyspaceName(*r.ko.Spec.KeyspaceName)
+		res.KeyspaceName = r.ko.Spec.KeyspaceName
 	}
 	if r.ko.Spec.ReplicationSpecification != nil {
-		f1 := &svcsdk.ReplicationSpecification{}
+		f1 := &svcsdktypes.ReplicationSpecification{}
 		if r.ko.Spec.ReplicationSpecification.RegionList != nil {
-			f1f0 := []*string{}
-			for _, f1f0iter := range r.ko.Spec.ReplicationSpecification.RegionList {
-				var f1f0elem string
-				f1f0elem = *f1f0iter
-				f1f0 = append(f1f0, &f1f0elem)
-			}
-			f1.SetRegionList(f1f0)
+			f1.RegionList = aws.ToStringSlice(r.ko.Spec.ReplicationSpecification.RegionList)
 		}
 		if r.ko.Spec.ReplicationSpecification.ReplicationStrategy != nil {
-			f1.SetReplicationStrategy(*r.ko.Spec.ReplicationSpecification.ReplicationStrategy)
+			f1.ReplicationStrategy = svcsdktypes.Rs(*r.ko.Spec.ReplicationSpecification.ReplicationStrategy)
 		}
-		res.SetReplicationSpecification(f1)
+		res.ReplicationSpecification = f1
 	}
 	if r.ko.Spec.Tags != nil {
-		f2 := []*svcsdk.Tag{}
+		f2 := []svcsdktypes.Tag{}
 		for _, f2iter := range r.ko.Spec.Tags {
-			f2elem := &svcsdk.Tag{}
+			f2elem := &svcsdktypes.Tag{}
 			if f2iter.Key != nil {
-				f2elem.SetKey(*f2iter.Key)
+				f2elem.Key = f2iter.Key
 			}
 			if f2iter.Value != nil {
-				f2elem.SetValue(*f2iter.Value)
+				f2elem.Value = f2iter.Value
 			}
-			f2 = append(f2, f2elem)
+			f2 = append(f2, *f2elem)
 		}
-		res.SetTags(f2)
+		res.Tags = f2
 	}
 
 	return res, nil
@@ -219,8 +213,66 @@ func (rm *resourceManager) sdkUpdate(
 	desired *resource,
 	latest *resource,
 	delta *ackcompare.Delta,
-) (*resource, error) {
-	return nil, ackerr.NewTerminalError(ackerr.NotImplemented)
+) (updated *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkUpdate")
+	defer func() {
+		exit(err)
+	}()
+	if immutableFieldChanges := rm.getImmutableFieldChanges(delta); len(immutableFieldChanges) > 0 {
+		msg := fmt.Sprintf("Immutable Spec fields have been modified: %s", strings.Join(immutableFieldChanges, ","))
+		return nil, ackerr.NewTerminalError(fmt.Errorf(msg))
+	}
+	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp *svcsdk.UpdateKeyspaceOutput
+	_ = resp
+	resp, err = rm.sdkapi.UpdateKeyspace(ctx, input)
+	rm.metrics.RecordAPICall("UPDATE", "UpdateKeyspace", err)
+	if err != nil {
+		return nil, err
+	}
+	// Merge in the information we read from the API call above to the copy of
+	// the original Kubernetes object we passed to the function
+	ko := desired.ko.DeepCopy()
+
+	if resp.ResourceArn != nil {
+		ko.Status.ResourceARN = resp.ResourceArn
+	} else {
+		ko.Status.ResourceARN = nil
+	}
+
+	rm.setStatusDefaults(ko)
+	return &resource{ko}, nil
+}
+
+// newUpdateRequestPayload returns an SDK-specific struct for the HTTP request
+// payload of the Update API call for the resource
+func (rm *resourceManager) newUpdateRequestPayload(
+	ctx context.Context,
+	r *resource,
+	delta *ackcompare.Delta,
+) (*svcsdk.UpdateKeyspaceInput, error) {
+	res := &svcsdk.UpdateKeyspaceInput{}
+
+	if r.ko.Spec.KeyspaceName != nil {
+		res.KeyspaceName = r.ko.Spec.KeyspaceName
+	}
+	if r.ko.Spec.ReplicationSpecification != nil {
+		f2 := &svcsdktypes.ReplicationSpecification{}
+		if r.ko.Spec.ReplicationSpecification.RegionList != nil {
+			f2.RegionList = aws.ToStringSlice(r.ko.Spec.ReplicationSpecification.RegionList)
+		}
+		if r.ko.Spec.ReplicationSpecification.ReplicationStrategy != nil {
+			f2.ReplicationStrategy = svcsdktypes.Rs(*r.ko.Spec.ReplicationSpecification.ReplicationStrategy)
+		}
+		res.ReplicationSpecification = f2
+	}
+
+	return res, nil
 }
 
 // sdkDelete deletes the supplied resource in the backend AWS service API
@@ -239,7 +291,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteKeyspaceOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteKeyspaceWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteKeyspace(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteKeyspace", err)
 	return nil, err
 }
@@ -252,7 +304,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteKeyspaceInput{}
 
 	if r.ko.Spec.KeyspaceName != nil {
-		res.SetKeyspaceName(*r.ko.Spec.KeyspaceName)
+		res.KeyspaceName = r.ko.Spec.KeyspaceName
 	}
 
 	return res, nil
@@ -357,19 +409,8 @@ func (rm *resourceManager) updateConditions(
 // and if the exception indicates that it is a Terminal exception
 // 'Terminal' exception are specified in generator configuration
 func (rm *resourceManager) terminalAWSError(err error) bool {
-	if err == nil {
-		return false
-	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
-		return false
-	}
-	switch awsErr.Code() {
-	case "InvalidParameterException":
-		return true
-	default:
-		return false
-	}
+	// No terminal_errors specified for this resource in generator config
+	return false
 }
 
 // getImmutableFieldChanges returns list of immutable fields from the

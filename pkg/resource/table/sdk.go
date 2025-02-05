@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 
@@ -28,8 +29,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/keyspaces"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/keyspaces"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/keyspaces/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +43,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.Keyspaces{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.Table{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +51,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -74,13 +77,11 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	var resp *svcsdk.GetTableOutput
-	resp, err = rm.sdkapi.GetTableWithContext(ctx, input)
+	resp, err = rm.sdkapi.GetTable(ctx, input)
 	rm.metrics.RecordAPICall("READ_ONE", "GetTable", err)
 	if err != nil {
-		if reqErr, ok := ackerr.AWSRequestFailure(err); ok && reqErr.StatusCode() == 404 {
-			return nil, ackerr.NotFound
-		}
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "ResourceNotFoundException" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "ResourceNotFoundException" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -95,8 +96,8 @@ func (rm *resourceManager) sdkFind(
 		if resp.CapacitySpecification.ReadCapacityUnits != nil {
 			f0.ReadCapacityUnits = resp.CapacitySpecification.ReadCapacityUnits
 		}
-		if resp.CapacitySpecification.ThroughputMode != nil {
-			f0.ThroughputMode = resp.CapacitySpecification.ThroughputMode
+		if resp.CapacitySpecification.ThroughputMode != "" {
+			f0.ThroughputMode = aws.String(string(resp.CapacitySpecification.ThroughputMode))
 		}
 		if resp.CapacitySpecification.WriteCapacityUnits != nil {
 			f0.WriteCapacityUnits = resp.CapacitySpecification.WriteCapacityUnits
@@ -107,8 +108,8 @@ func (rm *resourceManager) sdkFind(
 	}
 	if resp.ClientSideTimestamps != nil {
 		f1 := &svcapitypes.ClientSideTimestamps{}
-		if resp.ClientSideTimestamps.Status != nil {
-			f1.Status = resp.ClientSideTimestamps.Status
+		if resp.ClientSideTimestamps.Status != "" {
+			f1.Status = aws.String(string(resp.ClientSideTimestamps.Status))
 		}
 		ko.Spec.ClientSideTimestamps = f1
 	} else {
@@ -124,7 +125,8 @@ func (rm *resourceManager) sdkFind(
 		ko.Spec.Comment = nil
 	}
 	if resp.DefaultTimeToLive != nil {
-		ko.Spec.DefaultTimeToLive = resp.DefaultTimeToLive
+		defaultTimeToLiveCopy := int64(*resp.DefaultTimeToLive)
+		ko.Spec.DefaultTimeToLive = &defaultTimeToLiveCopy
 	} else {
 		ko.Spec.DefaultTimeToLive = nil
 	}
@@ -133,8 +135,8 @@ func (rm *resourceManager) sdkFind(
 		if resp.EncryptionSpecification.KmsKeyIdentifier != nil {
 			f5.KMSKeyIdentifier = resp.EncryptionSpecification.KmsKeyIdentifier
 		}
-		if resp.EncryptionSpecification.Type != nil {
-			f5.Type = resp.EncryptionSpecification.Type
+		if resp.EncryptionSpecification.Type != "" {
+			f5.Type = aws.String(string(resp.EncryptionSpecification.Type))
 		}
 		ko.Spec.EncryptionSpecification = f5
 	} else {
@@ -147,8 +149,8 @@ func (rm *resourceManager) sdkFind(
 	}
 	if resp.PointInTimeRecovery != nil {
 		f7 := &svcapitypes.PointInTimeRecovery{}
-		if resp.PointInTimeRecovery.Status != nil {
-			f7.Status = resp.PointInTimeRecovery.Status
+		if resp.PointInTimeRecovery.Status != "" {
+			f7.Status = aws.String(string(resp.PointInTimeRecovery.Status))
 		}
 		ko.Spec.PointInTimeRecovery = f7
 	} else {
@@ -162,63 +164,63 @@ func (rm *resourceManager) sdkFind(
 		ko.Status.ACKResourceMetadata.ARN = &arn
 	}
 	if resp.SchemaDefinition != nil {
-		f9 := &svcapitypes.SchemaDefinition{}
+		f10 := &svcapitypes.SchemaDefinition{}
 		if resp.SchemaDefinition.AllColumns != nil {
-			f9f0 := []*svcapitypes.ColumnDefinition{}
-			for _, f9f0iter := range resp.SchemaDefinition.AllColumns {
-				f9f0elem := &svcapitypes.ColumnDefinition{}
-				if f9f0iter.Name != nil {
-					f9f0elem.Name = f9f0iter.Name
+			f10f0 := []*svcapitypes.ColumnDefinition{}
+			for _, f10f0iter := range resp.SchemaDefinition.AllColumns {
+				f10f0elem := &svcapitypes.ColumnDefinition{}
+				if f10f0iter.Name != nil {
+					f10f0elem.Name = f10f0iter.Name
 				}
-				if f9f0iter.Type != nil {
-					f9f0elem.Type = f9f0iter.Type
+				if f10f0iter.Type != nil {
+					f10f0elem.Type = f10f0iter.Type
 				}
-				f9f0 = append(f9f0, f9f0elem)
+				f10f0 = append(f10f0, f10f0elem)
 			}
-			f9.AllColumns = f9f0
+			f10.AllColumns = f10f0
 		}
 		if resp.SchemaDefinition.ClusteringKeys != nil {
-			f9f1 := []*svcapitypes.ClusteringKey{}
-			for _, f9f1iter := range resp.SchemaDefinition.ClusteringKeys {
-				f9f1elem := &svcapitypes.ClusteringKey{}
-				if f9f1iter.Name != nil {
-					f9f1elem.Name = f9f1iter.Name
+			f10f1 := []*svcapitypes.ClusteringKey{}
+			for _, f10f1iter := range resp.SchemaDefinition.ClusteringKeys {
+				f10f1elem := &svcapitypes.ClusteringKey{}
+				if f10f1iter.Name != nil {
+					f10f1elem.Name = f10f1iter.Name
 				}
-				if f9f1iter.OrderBy != nil {
-					f9f1elem.OrderBy = f9f1iter.OrderBy
+				if f10f1iter.OrderBy != "" {
+					f10f1elem.OrderBy = aws.String(string(f10f1iter.OrderBy))
 				}
-				f9f1 = append(f9f1, f9f1elem)
+				f10f1 = append(f10f1, f10f1elem)
 			}
-			f9.ClusteringKeys = f9f1
+			f10.ClusteringKeys = f10f1
 		}
 		if resp.SchemaDefinition.PartitionKeys != nil {
-			f9f2 := []*svcapitypes.PartitionKey{}
-			for _, f9f2iter := range resp.SchemaDefinition.PartitionKeys {
-				f9f2elem := &svcapitypes.PartitionKey{}
-				if f9f2iter.Name != nil {
-					f9f2elem.Name = f9f2iter.Name
+			f10f2 := []*svcapitypes.PartitionKey{}
+			for _, f10f2iter := range resp.SchemaDefinition.PartitionKeys {
+				f10f2elem := &svcapitypes.PartitionKey{}
+				if f10f2iter.Name != nil {
+					f10f2elem.Name = f10f2iter.Name
 				}
-				f9f2 = append(f9f2, f9f2elem)
+				f10f2 = append(f10f2, f10f2elem)
 			}
-			f9.PartitionKeys = f9f2
+			f10.PartitionKeys = f10f2
 		}
 		if resp.SchemaDefinition.StaticColumns != nil {
-			f9f3 := []*svcapitypes.StaticColumn{}
-			for _, f9f3iter := range resp.SchemaDefinition.StaticColumns {
-				f9f3elem := &svcapitypes.StaticColumn{}
-				if f9f3iter.Name != nil {
-					f9f3elem.Name = f9f3iter.Name
+			f10f3 := []*svcapitypes.StaticColumn{}
+			for _, f10f3iter := range resp.SchemaDefinition.StaticColumns {
+				f10f3elem := &svcapitypes.StaticColumn{}
+				if f10f3iter.Name != nil {
+					f10f3elem.Name = f10f3iter.Name
 				}
-				f9f3 = append(f9f3, f9f3elem)
+				f10f3 = append(f10f3, f10f3elem)
 			}
-			f9.StaticColumns = f9f3
+			f10.StaticColumns = f10f3
 		}
-		ko.Spec.SchemaDefinition = f9
+		ko.Spec.SchemaDefinition = f10
 	} else {
 		ko.Spec.SchemaDefinition = nil
 	}
-	if resp.Status != nil {
-		ko.Status.Status = resp.Status
+	if resp.Status != "" {
+		ko.Status.Status = aws.String(string(resp.Status))
 	} else {
 		ko.Status.Status = nil
 	}
@@ -228,11 +230,11 @@ func (rm *resourceManager) sdkFind(
 		ko.Spec.TableName = nil
 	}
 	if resp.Ttl != nil {
-		f12 := &svcapitypes.TimeToLive{}
-		if resp.Ttl.Status != nil {
-			f12.Status = resp.Ttl.Status
+		f13 := &svcapitypes.TimeToLive{}
+		if resp.Ttl.Status != "" {
+			f13.Status = aws.String(string(resp.Ttl.Status))
 		}
-		ko.Spec.TTL = f12
+		ko.Spec.TTL = f13
 	} else {
 		ko.Spec.TTL = nil
 	}
@@ -259,10 +261,10 @@ func (rm *resourceManager) newDescribeRequestPayload(
 	res := &svcsdk.GetTableInput{}
 
 	if r.ko.Spec.KeyspaceName != nil {
-		res.SetKeyspaceName(*r.ko.Spec.KeyspaceName)
+		res.KeyspaceName = r.ko.Spec.KeyspaceName
 	}
 	if r.ko.Spec.TableName != nil {
-		res.SetTableName(*r.ko.Spec.TableName)
+		res.TableName = r.ko.Spec.TableName
 	}
 
 	return res, nil
@@ -287,7 +289,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateTableOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateTableWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateTable(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateTable", err)
 	if err != nil {
 		return nil, err
@@ -317,132 +319,137 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateTableInput{}
 
 	if r.ko.Spec.CapacitySpecification != nil {
-		f0 := &svcsdk.CapacitySpecification{}
+		f0 := &svcsdktypes.CapacitySpecification{}
 		if r.ko.Spec.CapacitySpecification.ReadCapacityUnits != nil {
-			f0.SetReadCapacityUnits(*r.ko.Spec.CapacitySpecification.ReadCapacityUnits)
+			f0.ReadCapacityUnits = r.ko.Spec.CapacitySpecification.ReadCapacityUnits
 		}
 		if r.ko.Spec.CapacitySpecification.ThroughputMode != nil {
-			f0.SetThroughputMode(*r.ko.Spec.CapacitySpecification.ThroughputMode)
+			f0.ThroughputMode = svcsdktypes.ThroughputMode(*r.ko.Spec.CapacitySpecification.ThroughputMode)
 		}
 		if r.ko.Spec.CapacitySpecification.WriteCapacityUnits != nil {
-			f0.SetWriteCapacityUnits(*r.ko.Spec.CapacitySpecification.WriteCapacityUnits)
+			f0.WriteCapacityUnits = r.ko.Spec.CapacitySpecification.WriteCapacityUnits
 		}
-		res.SetCapacitySpecification(f0)
+		res.CapacitySpecification = f0
 	}
 	if r.ko.Spec.ClientSideTimestamps != nil {
-		f1 := &svcsdk.ClientSideTimestamps{}
+		f1 := &svcsdktypes.ClientSideTimestamps{}
 		if r.ko.Spec.ClientSideTimestamps.Status != nil {
-			f1.SetStatus(*r.ko.Spec.ClientSideTimestamps.Status)
+			f1.Status = svcsdktypes.ClientSideTimestampsStatus(*r.ko.Spec.ClientSideTimestamps.Status)
 		}
-		res.SetClientSideTimestamps(f1)
+		res.ClientSideTimestamps = f1
 	}
 	if r.ko.Spec.Comment != nil {
-		f2 := &svcsdk.Comment{}
+		f2 := &svcsdktypes.Comment{}
 		if r.ko.Spec.Comment.Message != nil {
-			f2.SetMessage(*r.ko.Spec.Comment.Message)
+			f2.Message = r.ko.Spec.Comment.Message
 		}
-		res.SetComment(f2)
+		res.Comment = f2
 	}
 	if r.ko.Spec.DefaultTimeToLive != nil {
-		res.SetDefaultTimeToLive(*r.ko.Spec.DefaultTimeToLive)
+		defaultTimeToLiveCopy0 := *r.ko.Spec.DefaultTimeToLive
+		if defaultTimeToLiveCopy0 > math.MaxInt32 || defaultTimeToLiveCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field DefaultTimeToLive is of type int32")
+		}
+		defaultTimeToLiveCopy := int32(defaultTimeToLiveCopy0)
+		res.DefaultTimeToLive = &defaultTimeToLiveCopy
 	}
 	if r.ko.Spec.EncryptionSpecification != nil {
-		f4 := &svcsdk.EncryptionSpecification{}
+		f4 := &svcsdktypes.EncryptionSpecification{}
 		if r.ko.Spec.EncryptionSpecification.KMSKeyIdentifier != nil {
-			f4.SetKmsKeyIdentifier(*r.ko.Spec.EncryptionSpecification.KMSKeyIdentifier)
+			f4.KmsKeyIdentifier = r.ko.Spec.EncryptionSpecification.KMSKeyIdentifier
 		}
 		if r.ko.Spec.EncryptionSpecification.Type != nil {
-			f4.SetType(*r.ko.Spec.EncryptionSpecification.Type)
+			f4.Type = svcsdktypes.EncryptionType(*r.ko.Spec.EncryptionSpecification.Type)
 		}
-		res.SetEncryptionSpecification(f4)
+		res.EncryptionSpecification = f4
 	}
 	if r.ko.Spec.KeyspaceName != nil {
-		res.SetKeyspaceName(*r.ko.Spec.KeyspaceName)
+		res.KeyspaceName = r.ko.Spec.KeyspaceName
 	}
 	if r.ko.Spec.PointInTimeRecovery != nil {
-		f6 := &svcsdk.PointInTimeRecovery{}
+		f6 := &svcsdktypes.PointInTimeRecovery{}
 		if r.ko.Spec.PointInTimeRecovery.Status != nil {
-			f6.SetStatus(*r.ko.Spec.PointInTimeRecovery.Status)
+			f6.Status = svcsdktypes.PointInTimeRecoveryStatus(*r.ko.Spec.PointInTimeRecovery.Status)
 		}
-		res.SetPointInTimeRecovery(f6)
+		res.PointInTimeRecovery = f6
 	}
 	if r.ko.Spec.SchemaDefinition != nil {
-		f7 := &svcsdk.SchemaDefinition{}
+		f7 := &svcsdktypes.SchemaDefinition{}
 		if r.ko.Spec.SchemaDefinition.AllColumns != nil {
-			f7f0 := []*svcsdk.ColumnDefinition{}
+			f7f0 := []svcsdktypes.ColumnDefinition{}
 			for _, f7f0iter := range r.ko.Spec.SchemaDefinition.AllColumns {
-				f7f0elem := &svcsdk.ColumnDefinition{}
+				f7f0elem := &svcsdktypes.ColumnDefinition{}
 				if f7f0iter.Name != nil {
-					f7f0elem.SetName(*f7f0iter.Name)
+					f7f0elem.Name = f7f0iter.Name
 				}
 				if f7f0iter.Type != nil {
-					f7f0elem.SetType(*f7f0iter.Type)
+					f7f0elem.Type = f7f0iter.Type
 				}
-				f7f0 = append(f7f0, f7f0elem)
+				f7f0 = append(f7f0, *f7f0elem)
 			}
-			f7.SetAllColumns(f7f0)
+			f7.AllColumns = f7f0
 		}
 		if r.ko.Spec.SchemaDefinition.ClusteringKeys != nil {
-			f7f1 := []*svcsdk.ClusteringKey{}
+			f7f1 := []svcsdktypes.ClusteringKey{}
 			for _, f7f1iter := range r.ko.Spec.SchemaDefinition.ClusteringKeys {
-				f7f1elem := &svcsdk.ClusteringKey{}
+				f7f1elem := &svcsdktypes.ClusteringKey{}
 				if f7f1iter.Name != nil {
-					f7f1elem.SetName(*f7f1iter.Name)
+					f7f1elem.Name = f7f1iter.Name
 				}
 				if f7f1iter.OrderBy != nil {
-					f7f1elem.SetOrderBy(*f7f1iter.OrderBy)
+					f7f1elem.OrderBy = svcsdktypes.SortOrder(*f7f1iter.OrderBy)
 				}
-				f7f1 = append(f7f1, f7f1elem)
+				f7f1 = append(f7f1, *f7f1elem)
 			}
-			f7.SetClusteringKeys(f7f1)
+			f7.ClusteringKeys = f7f1
 		}
 		if r.ko.Spec.SchemaDefinition.PartitionKeys != nil {
-			f7f2 := []*svcsdk.PartitionKey{}
+			f7f2 := []svcsdktypes.PartitionKey{}
 			for _, f7f2iter := range r.ko.Spec.SchemaDefinition.PartitionKeys {
-				f7f2elem := &svcsdk.PartitionKey{}
+				f7f2elem := &svcsdktypes.PartitionKey{}
 				if f7f2iter.Name != nil {
-					f7f2elem.SetName(*f7f2iter.Name)
+					f7f2elem.Name = f7f2iter.Name
 				}
-				f7f2 = append(f7f2, f7f2elem)
+				f7f2 = append(f7f2, *f7f2elem)
 			}
-			f7.SetPartitionKeys(f7f2)
+			f7.PartitionKeys = f7f2
 		}
 		if r.ko.Spec.SchemaDefinition.StaticColumns != nil {
-			f7f3 := []*svcsdk.StaticColumn{}
+			f7f3 := []svcsdktypes.StaticColumn{}
 			for _, f7f3iter := range r.ko.Spec.SchemaDefinition.StaticColumns {
-				f7f3elem := &svcsdk.StaticColumn{}
+				f7f3elem := &svcsdktypes.StaticColumn{}
 				if f7f3iter.Name != nil {
-					f7f3elem.SetName(*f7f3iter.Name)
+					f7f3elem.Name = f7f3iter.Name
 				}
-				f7f3 = append(f7f3, f7f3elem)
+				f7f3 = append(f7f3, *f7f3elem)
 			}
-			f7.SetStaticColumns(f7f3)
+			f7.StaticColumns = f7f3
 		}
-		res.SetSchemaDefinition(f7)
+		res.SchemaDefinition = f7
 	}
 	if r.ko.Spec.TableName != nil {
-		res.SetTableName(*r.ko.Spec.TableName)
+		res.TableName = r.ko.Spec.TableName
 	}
 	if r.ko.Spec.Tags != nil {
-		f9 := []*svcsdk.Tag{}
+		f9 := []svcsdktypes.Tag{}
 		for _, f9iter := range r.ko.Spec.Tags {
-			f9elem := &svcsdk.Tag{}
+			f9elem := &svcsdktypes.Tag{}
 			if f9iter.Key != nil {
-				f9elem.SetKey(*f9iter.Key)
+				f9elem.Key = f9iter.Key
 			}
 			if f9iter.Value != nil {
-				f9elem.SetValue(*f9iter.Value)
+				f9elem.Value = f9iter.Value
 			}
-			f9 = append(f9, f9elem)
+			f9 = append(f9, *f9elem)
 		}
-		res.SetTags(f9)
+		res.Tags = f9
 	}
 	if r.ko.Spec.TTL != nil {
-		f10 := &svcsdk.TimeToLive{}
+		f10 := &svcsdktypes.TimeToLive{}
 		if r.ko.Spec.TTL.Status != nil {
-			f10.SetStatus(*r.ko.Spec.TTL.Status)
+			f10.Status = svcsdktypes.TimeToLiveStatus(*r.ko.Spec.TTL.Status)
 		}
-		res.SetTtl(f10)
+		res.Ttl = f10
 	}
 
 	return res, nil
@@ -468,7 +475,7 @@ func (rm *resourceManager) sdkUpdate(
 
 	var resp *svcsdk.UpdateTableOutput
 	_ = resp
-	resp, err = rm.sdkapi.UpdateTableWithContext(ctx, input)
+	resp, err = rm.sdkapi.UpdateTable(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "UpdateTable", err)
 	if err != nil {
 		return nil, err
@@ -499,57 +506,62 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	res := &svcsdk.UpdateTableInput{}
 
 	if r.ko.Spec.CapacitySpecification != nil {
-		f1 := &svcsdk.CapacitySpecification{}
+		f2 := &svcsdktypes.CapacitySpecification{}
 		if r.ko.Spec.CapacitySpecification.ReadCapacityUnits != nil {
-			f1.SetReadCapacityUnits(*r.ko.Spec.CapacitySpecification.ReadCapacityUnits)
+			f2.ReadCapacityUnits = r.ko.Spec.CapacitySpecification.ReadCapacityUnits
 		}
 		if r.ko.Spec.CapacitySpecification.ThroughputMode != nil {
-			f1.SetThroughputMode(*r.ko.Spec.CapacitySpecification.ThroughputMode)
+			f2.ThroughputMode = svcsdktypes.ThroughputMode(*r.ko.Spec.CapacitySpecification.ThroughputMode)
 		}
 		if r.ko.Spec.CapacitySpecification.WriteCapacityUnits != nil {
-			f1.SetWriteCapacityUnits(*r.ko.Spec.CapacitySpecification.WriteCapacityUnits)
+			f2.WriteCapacityUnits = r.ko.Spec.CapacitySpecification.WriteCapacityUnits
 		}
-		res.SetCapacitySpecification(f1)
+		res.CapacitySpecification = f2
 	}
 	if r.ko.Spec.ClientSideTimestamps != nil {
-		f2 := &svcsdk.ClientSideTimestamps{}
+		f3 := &svcsdktypes.ClientSideTimestamps{}
 		if r.ko.Spec.ClientSideTimestamps.Status != nil {
-			f2.SetStatus(*r.ko.Spec.ClientSideTimestamps.Status)
+			f3.Status = svcsdktypes.ClientSideTimestampsStatus(*r.ko.Spec.ClientSideTimestamps.Status)
 		}
-		res.SetClientSideTimestamps(f2)
+		res.ClientSideTimestamps = f3
 	}
 	if r.ko.Spec.DefaultTimeToLive != nil {
-		res.SetDefaultTimeToLive(*r.ko.Spec.DefaultTimeToLive)
+		defaultTimeToLiveCopy0 := *r.ko.Spec.DefaultTimeToLive
+		if defaultTimeToLiveCopy0 > math.MaxInt32 || defaultTimeToLiveCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field defaultTimeToLive is of type int32")
+		}
+		defaultTimeToLiveCopy := int32(defaultTimeToLiveCopy0)
+		res.DefaultTimeToLive = &defaultTimeToLiveCopy
 	}
 	if r.ko.Spec.EncryptionSpecification != nil {
-		f4 := &svcsdk.EncryptionSpecification{}
+		f5 := &svcsdktypes.EncryptionSpecification{}
 		if r.ko.Spec.EncryptionSpecification.KMSKeyIdentifier != nil {
-			f4.SetKmsKeyIdentifier(*r.ko.Spec.EncryptionSpecification.KMSKeyIdentifier)
+			f5.KmsKeyIdentifier = r.ko.Spec.EncryptionSpecification.KMSKeyIdentifier
 		}
 		if r.ko.Spec.EncryptionSpecification.Type != nil {
-			f4.SetType(*r.ko.Spec.EncryptionSpecification.Type)
+			f5.Type = svcsdktypes.EncryptionType(*r.ko.Spec.EncryptionSpecification.Type)
 		}
-		res.SetEncryptionSpecification(f4)
+		res.EncryptionSpecification = f5
 	}
 	if r.ko.Spec.KeyspaceName != nil {
-		res.SetKeyspaceName(*r.ko.Spec.KeyspaceName)
+		res.KeyspaceName = r.ko.Spec.KeyspaceName
 	}
 	if r.ko.Spec.PointInTimeRecovery != nil {
-		f6 := &svcsdk.PointInTimeRecovery{}
+		f7 := &svcsdktypes.PointInTimeRecovery{}
 		if r.ko.Spec.PointInTimeRecovery.Status != nil {
-			f6.SetStatus(*r.ko.Spec.PointInTimeRecovery.Status)
+			f7.Status = svcsdktypes.PointInTimeRecoveryStatus(*r.ko.Spec.PointInTimeRecovery.Status)
 		}
-		res.SetPointInTimeRecovery(f6)
+		res.PointInTimeRecovery = f7
 	}
 	if r.ko.Spec.TableName != nil {
-		res.SetTableName(*r.ko.Spec.TableName)
+		res.TableName = r.ko.Spec.TableName
 	}
 	if r.ko.Spec.TTL != nil {
-		f8 := &svcsdk.TimeToLive{}
+		f10 := &svcsdktypes.TimeToLive{}
 		if r.ko.Spec.TTL.Status != nil {
-			f8.SetStatus(*r.ko.Spec.TTL.Status)
+			f10.Status = svcsdktypes.TimeToLiveStatus(*r.ko.Spec.TTL.Status)
 		}
-		res.SetTtl(f8)
+		res.Ttl = f10
 	}
 
 	return res, nil
@@ -571,7 +583,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteTableOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteTableWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteTable(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteTable", err)
 	return nil, err
 }
@@ -584,10 +596,10 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteTableInput{}
 
 	if r.ko.Spec.KeyspaceName != nil {
-		res.SetKeyspaceName(*r.ko.Spec.KeyspaceName)
+		res.KeyspaceName = r.ko.Spec.KeyspaceName
 	}
 	if r.ko.Spec.TableName != nil {
-		res.SetTableName(*r.ko.Spec.TableName)
+		res.TableName = r.ko.Spec.TableName
 	}
 
 	return res, nil
@@ -692,17 +704,6 @@ func (rm *resourceManager) updateConditions(
 // and if the exception indicates that it is a Terminal exception
 // 'Terminal' exception are specified in generator configuration
 func (rm *resourceManager) terminalAWSError(err error) bool {
-	if err == nil {
-		return false
-	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
-		return false
-	}
-	switch awsErr.Code() {
-	case "InvalidParameterException":
-		return true
-	default:
-		return false
-	}
+	// No terminal_errors specified for this resource in generator config
+	return false
 }
