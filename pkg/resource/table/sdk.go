@@ -528,7 +528,7 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	if r.ko.Spec.DefaultTimeToLive != nil {
 		defaultTimeToLiveCopy0 := *r.ko.Spec.DefaultTimeToLive
 		if defaultTimeToLiveCopy0 > math.MaxInt32 || defaultTimeToLiveCopy0 < math.MinInt32 {
-			return nil, fmt.Errorf("error: field defaultTimeToLive is of type int32")
+			return nil, fmt.Errorf("error: field DefaultTimeToLive is of type int32")
 		}
 		defaultTimeToLiveCopy := int32(defaultTimeToLiveCopy0)
 		res.DefaultTimeToLive = &defaultTimeToLiveCopy
