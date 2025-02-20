@@ -34,6 +34,8 @@ type KeyspaceSpec struct {
 	//     requires the current Region and at least one additional Amazon Web Services
 	//     Region where the keyspace is going to be replicated in. The maximum number
 	//     of supported replication Regions including the current Region is six.
+	//
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	ReplicationSpecification *ReplicationSpecification `json:"replicationSpecification,omitempty"`
 	// A list of key-value pair tags to be attached to the keyspace.
 	//
@@ -50,7 +52,7 @@ type KeyspaceStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
