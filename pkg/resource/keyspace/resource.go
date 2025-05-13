@@ -16,6 +16,8 @@
 package keyspace
 
 import (
+	"fmt"
+
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackerrors "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
@@ -89,6 +91,17 @@ func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error 
 		return ackerrors.MissingNameIdentifier
 	}
 	r.ko.Spec.KeyspaceName = &identifier.NameOrID
+
+	return nil
+}
+
+// PopulateResourceFromAnnotation populates the fields passed from adoption annotation
+func (r *resource) PopulateResourceFromAnnotation(fields map[string]string) error {
+	tmp, ok := fields["keyspaceName"]
+	if !ok {
+		return ackerrors.NewTerminalError(fmt.Errorf("required field missing: keyspaceName"))
+	}
+	r.ko.Spec.KeyspaceName = &tmp
 
 	return nil
 }

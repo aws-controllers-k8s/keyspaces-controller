@@ -16,9 +16,12 @@
 package table
 
 import (
+	"fmt"
+
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackerrors "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rtclient "sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -92,7 +95,23 @@ func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error 
 
 	f0, f0ok := identifier.AdditionalKeys["keyspaceName"]
 	if f0ok {
-		r.ko.Spec.KeyspaceName = &f0
+		r.ko.Spec.KeyspaceName = aws.String(f0)
+	}
+
+	return nil
+}
+
+// PopulateResourceFromAnnotation populates the fields passed from adoption annotation
+func (r *resource) PopulateResourceFromAnnotation(fields map[string]string) error {
+	tmp, ok := fields["tableName"]
+	if !ok {
+		return ackerrors.NewTerminalError(fmt.Errorf("required field missing: tableName"))
+	}
+	r.ko.Spec.TableName = &tmp
+
+	f0, f0ok := fields["keyspaceName"]
+	if f0ok {
+		r.ko.Spec.KeyspaceName = aws.String(f0)
 	}
 
 	return nil

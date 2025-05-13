@@ -10,9 +10,7 @@ rules:
   - keyspaces.services.k8s.aws
   resources:
   - keyspaces
-
   - tables
-
   verbs:
   - create
   - delete

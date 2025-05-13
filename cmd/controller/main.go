@@ -16,6 +16,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
@@ -24,13 +25,16 @@ import (
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	ackrtutil "github.com/aws-controllers-k8s/runtime/pkg/util"
 	ackrtwebhook "github.com/aws-controllers-k8s/runtime/pkg/webhook"
-	svcsdk "github.com/aws/aws-sdk-go/service/keyspaces"
 	flag "github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrlrt "sigs.k8s.io/controller-runtime"
+	ctrlrtcache "sigs.k8s.io/controller-runtime/pkg/cache"
+	ctrlrthealthz "sigs.k8s.io/controller-runtime/pkg/healthz"
 	ctrlrtmetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	ctrlrtwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	svctypes "github.com/aws-controllers-k8s/keyspaces-controller/apis/v1alpha1"
 	svcresource "github.com/aws-controllers-k8s/keyspaces-controller/pkg/resource"
@@ -42,11 +46,10 @@ import (
 )
 
 var (
-	awsServiceAPIGroup    = "keyspaces.services.k8s.aws"
-	awsServiceAlias       = "keyspaces"
-	awsServiceEndpointsID = svcsdk.EndpointsID
-	scheme                = runtime.NewScheme()
-	setupLog              = ctrlrt.Log.WithName("setup")
+	awsServiceAPIGroup = "keyspaces.services.k8s.aws"
+	awsServiceAlias    = "keyspaces"
+	scheme             = runtime.NewScheme()
+	setupLog           = ctrlrt.Log.WithName("setup")
 )
 
 func init() {
@@ -68,7 +71,8 @@ func main() {
 		resourceGVKs = append(resourceGVKs, mf.ResourceDescriptor().GroupVersionKind())
 	}
 
-	if err := ackCfg.Validate(ackcfg.WithGVKs(resourceGVKs)); err != nil {
+	ctx := context.Background()
+	if err := ackCfg.Validate(ctx, ackcfg.WithGVKs(resourceGVKs)); err != nil {
 		setupLog.Error(
 			err, "Unable to create controller manager",
 			"aws.service", awsServiceAlias,
@@ -85,15 +89,47 @@ func main() {
 		os.Exit(1)
 	}
 
+	watchNamespaces := make(map[string]ctrlrtcache.Config, 0)
+	namespaces, err := ackCfg.GetWatchNamespaces()
+	if err != nil {
+		setupLog.Error(
+			err, "Unable to parse watch namespaces.",
+			"aws.service", ackCfg.WatchNamespace,
+		)
+		os.Exit(1)
+	}
+
+	for _, namespace := range namespaces {
+		watchNamespaces[namespace] = ctrlrtcache.Config{}
+	}
+	watchSelectors, err := ackCfg.ParseWatchSelectors()
+	if err != nil {
+		setupLog.Error(
+			err, "Unable to parse watch selectors.",
+			"aws.service", awsServiceAlias,
+		)
+		os.Exit(1)
+	}
 	mgr, err := ctrlrt.NewManager(ctrlrt.GetConfigOrDie(), ctrlrt.Options{
-		Scheme:                  scheme,
-		Port:                    port,
-		Host:                    host,
-		MetricsBindAddress:      ackCfg.MetricsAddr,
+		Scheme: scheme,
+		Cache: ctrlrtcache.Options{
+			Scheme:               scheme,
+			DefaultNamespaces:    watchNamespaces,
+			DefaultLabelSelector: watchSelectors,
+		},
+		WebhookServer: &ctrlrtwebhook.DefaultServer{
+			Options: ctrlrtwebhook.Options{
+				Port: port,
+				Host: host,
+			},
+		},
+		Metrics:                 metricsserver.Options{BindAddress: ackCfg.MetricsAddr},
 		LeaderElection:          ackCfg.EnableLeaderElection,
 		LeaderElectionID:        "ack-" + awsServiceAPIGroup,
-		Namespace:               ackCfg.WatchNamespace,
 		LeaderElectionNamespace: ackCfg.LeaderElectionNamespace,
+		HealthProbeBindAddress:  ackCfg.HealthzAddr,
+		LivenessEndpointName:    "/healthz",
+		ReadinessEndpointName:   "/readyz",
 	})
 	if err != nil {
 		setupLog.Error(
@@ -110,7 +146,7 @@ func main() {
 		"aws.service", awsServiceAlias,
 	)
 	sc := ackrt.NewServiceController(
-		awsServiceAlias, awsServiceAPIGroup, awsServiceEndpointsID,
+		awsServiceAlias, awsServiceAPIGroup,
 		acktypes.VersionInfo{
 			version.GitCommit,
 			version.GitVersion,
@@ -132,7 +168,6 @@ func main() {
 					err, "unable to register webhook "+webhook.UID(),
 					"aws.service", awsServiceAlias,
 				)
-
 			}
 		}
 	}
@@ -140,6 +175,21 @@ func main() {
 	if err = sc.BindControllerManager(mgr, ackCfg); err != nil {
 		setupLog.Error(
 			err, "unable bind to controller manager to service controller",
+			"aws.service", awsServiceAlias,
+		)
+		os.Exit(1)
+	}
+
+	if err = mgr.AddHealthzCheck("health", ctrlrthealthz.Ping); err != nil {
+		setupLog.Error(
+			err, "unable to set up health check",
+			"aws.service", awsServiceAlias,
+		)
+		os.Exit(1)
+	}
+	if err = mgr.AddReadyzCheck("check", ctrlrthealthz.Ping); err != nil {
+		setupLog.Error(
+			err, "unable to set up ready check",
 			"aws.service", awsServiceAlias,
 		)
 		os.Exit(1)

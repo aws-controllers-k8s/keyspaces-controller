@@ -28,6 +28,148 @@ var (
 	_ = ackv1alpha1.AWSAccountID("")
 )
 
+// Amazon Keyspaces supports the target tracking auto scaling policy. With this
+// policy, Amazon Keyspaces auto scaling ensures that the table's ratio of consumed
+// to provisioned capacity stays at or near the target value that you specify.
+// You define the target value as a percentage between 20 and 90.
+type AutoScalingPolicy struct {
+	// The auto scaling policy that scales a table based on the ratio of consumed
+	// to provisioned capacity.
+	TargetTrackingScalingPolicyConfiguration *TargetTrackingScalingPolicyConfiguration `json:"targetTrackingScalingPolicyConfiguration,omitempty"`
+}
+
+// The optional auto scaling settings for a table with provisioned throughput
+// capacity.
+//
+// To turn on auto scaling for a table in throughputMode:PROVISIONED, you must
+// specify the following parameters.
+//
+// Configure the minimum and maximum capacity units. The auto scaling policy
+// ensures that capacity never goes below the minimum or above the maximum range.
+//
+//   - minimumUnits: The minimum level of throughput the table should always
+//     be ready to support. The value must be between 1 and the max throughput
+//     per second quota for your account (40,000 by default).
+//
+//   - maximumUnits: The maximum level of throughput the table should always
+//     be ready to support. The value must be between 1 and the max throughput
+//     per second quota for your account (40,000 by default).
+//
+//   - scalingPolicy: Amazon Keyspaces supports the target tracking scaling
+//     policy. The auto scaling target is the provisioned capacity of the table.
+//     targetTrackingScalingPolicyConfiguration: To define the target tracking
+//     policy, you must define the target value. targetValue: The target utilization
+//     rate of the table. Amazon Keyspaces auto scaling ensures that the ratio
+//     of consumed capacity to provisioned capacity stays at or near this value.
+//     You define targetValue as a percentage. A double between 20 and 90. (Required)
+//     disableScaleIn: A boolean that specifies if scale-in is disabled or enabled
+//     for the table. This parameter is disabled by default. To turn on scale-in,
+//     set the boolean value to FALSE. This means that capacity for a table can
+//     be automatically scaled down on your behalf. (Optional) scaleInCooldown:
+//     A cooldown period in seconds between scaling activities that lets the
+//     table stabilize before another scale in activity starts. If no value is
+//     provided, the default is 0. (Optional) scaleOutCooldown: A cooldown period
+//     in seconds between scaling activities that lets the table stabilize before
+//     another scale out activity starts. If no value is provided, the default
+//     is 0. (Optional)
+//
+// For more information, see Managing throughput capacity automatically with
+// Amazon Keyspaces auto scaling (https://docs.aws.amazon.com/keyspaces/latest/devguide/autoscaling.html)
+// in the Amazon Keyspaces Developer Guide.
+type AutoScalingSettings struct {
+	AutoScalingDisabled *bool  `json:"autoScalingDisabled,omitempty"`
+	MaximumUnits        *int64 `json:"maximumUnits,omitempty"`
+	MinimumUnits        *int64 `json:"minimumUnits,omitempty"`
+	// Amazon Keyspaces supports the target tracking auto scaling policy. With this
+	// policy, Amazon Keyspaces auto scaling ensures that the table's ratio of consumed
+	// to provisioned capacity stays at or near the target value that you specify.
+	// You define the target value as a percentage between 20 and 90.
+	ScalingPolicy *AutoScalingPolicy `json:"scalingPolicy,omitempty"`
+}
+
+// The optional auto scaling capacity settings for a table in provisioned capacity
+// mode.
+type AutoScalingSpecification struct {
+	// The optional auto scaling settings for a table with provisioned throughput
+	// capacity.
+	//
+	// To turn on auto scaling for a table in throughputMode:PROVISIONED, you must
+	// specify the following parameters.
+	//
+	// Configure the minimum and maximum capacity units. The auto scaling policy
+	// ensures that capacity never goes below the minimum or above the maximum range.
+	//
+	//    * minimumUnits: The minimum level of throughput the table should always
+	//    be ready to support. The value must be between 1 and the max throughput
+	//    per second quota for your account (40,000 by default).
+	//
+	//    * maximumUnits: The maximum level of throughput the table should always
+	//    be ready to support. The value must be between 1 and the max throughput
+	//    per second quota for your account (40,000 by default).
+	//
+	//    * scalingPolicy: Amazon Keyspaces supports the target tracking scaling
+	//    policy. The auto scaling target is the provisioned capacity of the table.
+	//    targetTrackingScalingPolicyConfiguration: To define the target tracking
+	//    policy, you must define the target value. targetValue: The target utilization
+	//    rate of the table. Amazon Keyspaces auto scaling ensures that the ratio
+	//    of consumed capacity to provisioned capacity stays at or near this value.
+	//    You define targetValue as a percentage. A double between 20 and 90. (Required)
+	//    disableScaleIn: A boolean that specifies if scale-in is disabled or enabled
+	//    for the table. This parameter is disabled by default. To turn on scale-in,
+	//    set the boolean value to FALSE. This means that capacity for a table can
+	//    be automatically scaled down on your behalf. (Optional) scaleInCooldown:
+	//    A cooldown period in seconds between scaling activities that lets the
+	//    table stabilize before another scale in activity starts. If no value is
+	//    provided, the default is 0. (Optional) scaleOutCooldown: A cooldown period
+	//    in seconds between scaling activities that lets the table stabilize before
+	//    another scale out activity starts. If no value is provided, the default
+	//    is 0. (Optional)
+	//
+	// For more information, see Managing throughput capacity automatically with
+	// Amazon Keyspaces auto scaling (https://docs.aws.amazon.com/keyspaces/latest/devguide/autoscaling.html)
+	// in the Amazon Keyspaces Developer Guide.
+	ReadCapacityAutoScaling *AutoScalingSettings `json:"readCapacityAutoScaling,omitempty"`
+	// The optional auto scaling settings for a table with provisioned throughput
+	// capacity.
+	//
+	// To turn on auto scaling for a table in throughputMode:PROVISIONED, you must
+	// specify the following parameters.
+	//
+	// Configure the minimum and maximum capacity units. The auto scaling policy
+	// ensures that capacity never goes below the minimum or above the maximum range.
+	//
+	//    * minimumUnits: The minimum level of throughput the table should always
+	//    be ready to support. The value must be between 1 and the max throughput
+	//    per second quota for your account (40,000 by default).
+	//
+	//    * maximumUnits: The maximum level of throughput the table should always
+	//    be ready to support. The value must be between 1 and the max throughput
+	//    per second quota for your account (40,000 by default).
+	//
+	//    * scalingPolicy: Amazon Keyspaces supports the target tracking scaling
+	//    policy. The auto scaling target is the provisioned capacity of the table.
+	//    targetTrackingScalingPolicyConfiguration: To define the target tracking
+	//    policy, you must define the target value. targetValue: The target utilization
+	//    rate of the table. Amazon Keyspaces auto scaling ensures that the ratio
+	//    of consumed capacity to provisioned capacity stays at or near this value.
+	//    You define targetValue as a percentage. A double between 20 and 90. (Required)
+	//    disableScaleIn: A boolean that specifies if scale-in is disabled or enabled
+	//    for the table. This parameter is disabled by default. To turn on scale-in,
+	//    set the boolean value to FALSE. This means that capacity for a table can
+	//    be automatically scaled down on your behalf. (Optional) scaleInCooldown:
+	//    A cooldown period in seconds between scaling activities that lets the
+	//    table stabilize before another scale in activity starts. If no value is
+	//    provided, the default is 0. (Optional) scaleOutCooldown: A cooldown period
+	//    in seconds between scaling activities that lets the table stabilize before
+	//    another scale out activity starts. If no value is provided, the default
+	//    is 0. (Optional)
+	//
+	// For more information, see Managing throughput capacity automatically with
+	// Amazon Keyspaces auto scaling (https://docs.aws.amazon.com/keyspaces/latest/devguide/autoscaling.html)
+	// in the Amazon Keyspaces Developer Guide.
+	WriteCapacityAutoScaling *AutoScalingSettings `json:"writeCapacityAutoScaling,omitempty"`
+}
+
 // Amazon Keyspaces has two read/write capacity modes for processing reads and
 // writes on your tables:
 //
@@ -110,6 +252,12 @@ type EncryptionSpecification struct {
 	Type             *string `json:"type_,omitempty"`
 }
 
+// A field definition consists out of a name and a type.
+type FieldDefinition struct {
+	Name *string `json:"name,omitempty"`
+	Type *string `json:"type_,omitempty"`
+}
+
 // Represents the properties of a keyspace.
 type KeyspaceSummary struct {
 	KeyspaceName        *string   `json:"keyspaceName,omitempty"`
@@ -139,6 +287,103 @@ type PointInTimeRecovery struct {
 type PointInTimeRecoverySummary struct {
 	EarliestRestorableTimestamp *metav1.Time `json:"earliestRestorableTimestamp,omitempty"`
 	Status                      *string      `json:"status,omitempty"`
+}
+
+// The auto scaling settings of a multi-Region table in the specified Amazon
+// Web Services Region.
+type ReplicaAutoScalingSpecification struct {
+	// The optional auto scaling capacity settings for a table in provisioned capacity
+	// mode.
+	AutoScalingSpecification *AutoScalingSpecification `json:"autoScalingSpecification,omitempty"`
+	Region                   *string                   `json:"region,omitempty"`
+}
+
+// The Amazon Web Services Region specific settings of a multi-Region table.
+//
+// For a multi-Region table, you can configure the table's read capacity differently
+// per Amazon Web Services Region. You can do this by configuring the following
+// parameters.
+//
+//   - region: The Region where these settings are applied. (Required)
+//
+//   - readCapacityUnits: The provisioned read capacity units. (Optional)
+//
+//   - readCapacityAutoScaling: The read capacity auto scaling settings for
+//     the table. (Optional)
+type ReplicaSpecification struct {
+	// The optional auto scaling settings for a table with provisioned throughput
+	// capacity.
+	//
+	// To turn on auto scaling for a table in throughputMode:PROVISIONED, you must
+	// specify the following parameters.
+	//
+	// Configure the minimum and maximum capacity units. The auto scaling policy
+	// ensures that capacity never goes below the minimum or above the maximum range.
+	//
+	//    * minimumUnits: The minimum level of throughput the table should always
+	//    be ready to support. The value must be between 1 and the max throughput
+	//    per second quota for your account (40,000 by default).
+	//
+	//    * maximumUnits: The maximum level of throughput the table should always
+	//    be ready to support. The value must be between 1 and the max throughput
+	//    per second quota for your account (40,000 by default).
+	//
+	//    * scalingPolicy: Amazon Keyspaces supports the target tracking scaling
+	//    policy. The auto scaling target is the provisioned capacity of the table.
+	//    targetTrackingScalingPolicyConfiguration: To define the target tracking
+	//    policy, you must define the target value. targetValue: The target utilization
+	//    rate of the table. Amazon Keyspaces auto scaling ensures that the ratio
+	//    of consumed capacity to provisioned capacity stays at or near this value.
+	//    You define targetValue as a percentage. A double between 20 and 90. (Required)
+	//    disableScaleIn: A boolean that specifies if scale-in is disabled or enabled
+	//    for the table. This parameter is disabled by default. To turn on scale-in,
+	//    set the boolean value to FALSE. This means that capacity for a table can
+	//    be automatically scaled down on your behalf. (Optional) scaleInCooldown:
+	//    A cooldown period in seconds between scaling activities that lets the
+	//    table stabilize before another scale in activity starts. If no value is
+	//    provided, the default is 0. (Optional) scaleOutCooldown: A cooldown period
+	//    in seconds between scaling activities that lets the table stabilize before
+	//    another scale out activity starts. If no value is provided, the default
+	//    is 0. (Optional)
+	//
+	// For more information, see Managing throughput capacity automatically with
+	// Amazon Keyspaces auto scaling (https://docs.aws.amazon.com/keyspaces/latest/devguide/autoscaling.html)
+	// in the Amazon Keyspaces Developer Guide.
+	ReadCapacityAutoScaling *AutoScalingSettings `json:"readCapacityAutoScaling,omitempty"`
+	ReadCapacityUnits       *int64               `json:"readCapacityUnits,omitempty"`
+	Region                  *string              `json:"region,omitempty"`
+}
+
+// The Region-specific settings of a multi-Region table in the specified Amazon
+// Web Services Region.
+//
+// If the multi-Region table is using provisioned capacity and has optional
+// auto scaling policies configured, note that the Region specific summary returns
+// both read and write capacity settings. But only Region specific read capacity
+// settings can be configured for a multi-Region table. In a multi-Region table,
+// your write capacity units will be synced across all Amazon Web Services Regions
+// to ensure that there is enough capacity to replicate write events across
+// Regions.
+type ReplicaSpecificationSummary struct {
+	// The read/write throughput capacity mode for a table. The options are:
+	//
+	//    * throughputMode:PAY_PER_REQUEST and
+	//
+	//    * throughputMode:PROVISIONED.
+	//
+	// For more information, see Read/write capacity modes (https://docs.aws.amazon.com/keyspaces/latest/devguide/ReadWriteCapacityMode.html)
+	// in the Amazon Keyspaces Developer Guide.
+	CapacitySpecification *CapacitySpecificationSummary `json:"capacitySpecification,omitempty"`
+	Region                *string                       `json:"region,omitempty"`
+	Status                *string                       `json:"status,omitempty"`
+}
+
+// This shows the summary status of the keyspace after a new Amazon Web Services
+// Region was added.
+type ReplicationGroupStatus struct {
+	KeyspaceStatus            *string `json:"keyspaceStatus,omitempty"`
+	Region                    *string `json:"region,omitempty"`
+	TablesReplicationProgress *string `json:"tablesReplicationProgress,omitempty"`
 }
 
 // The replication specification of the keyspace includes:
@@ -189,6 +434,15 @@ type TableSummary struct {
 type Tag struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
+}
+
+// The auto scaling policy that scales a table based on the ratio of consumed
+// to provisioned capacity.
+type TargetTrackingScalingPolicyConfiguration struct {
+	DisableScaleIn   *bool    `json:"disableScaleIn,omitempty"`
+	ScaleInCooldown  *int64   `json:"scaleInCooldown,omitempty"`
+	ScaleOutCooldown *int64   `json:"scaleOutCooldown,omitempty"`
+	TargetValue      *float64 `json:"targetValue,omitempty"`
 }
 
 // Enable custom Time to Live (TTL) settings for rows and columns without setting
