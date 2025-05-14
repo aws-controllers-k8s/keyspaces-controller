@@ -41,6 +41,7 @@ import (
 
 	_ "github.com/aws-controllers-k8s/keyspaces-controller/pkg/resource/keyspace"
 	_ "github.com/aws-controllers-k8s/keyspaces-controller/pkg/resource/table"
+	_ "github.com/aws-controllers-k8s/keyspaces-controller/pkg/resource/type_"
 
 	"github.com/aws-controllers-k8s/keyspaces-controller/pkg/version"
 )

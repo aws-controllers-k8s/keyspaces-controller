@@ -3,7 +3,7 @@ ignore:
       # - Keyspace
       # - Table
       - Types
-      - Type
+      # - Type
   field_paths:
     - CreateTableInput.AutoScalingSpecification
     - CreateTableInput.ReplicaSpecifications
@@ -31,3 +31,15 @@ resources:
           code: ResourceNotFoundException
       terminal_codes:
         - InvalidParameterException
+  Type:
+    fields:
+      FieldDefinitions:
+        is_immutable: true
+    tags:
+      ignore: true
+    exceptions:
+      errors:
+        404:
+          code: ResourceNotFoundException
+      terminal_codes:
+        - ValidationException

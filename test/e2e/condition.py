@@ -40,7 +40,7 @@ def assert_type_status(
 
         ref = resource.CustomResourceReference(
             CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            db_cluster_id, namespace="default",
+            keyspace_name, namespace="default",
         )
         resource.create_custom_resource(ref, resource_data)
         resource.wait_resource_consumed_by_controller(ref)
@@ -102,7 +102,7 @@ def assert_synced(ref: resource.CustomResourceReference):
 
         ref = resource.CustomResourceReference(
             CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            db_cluster_id, namespace="default",
+            keyspace_name, namespace="default",
         )
         resource.create_custom_resource(ref, resource_data)
         resource.wait_resource_consumed_by_controller(ref)
@@ -125,7 +125,7 @@ def assert_not_synced(ref: resource.CustomResourceReference):
 
         ref = resource.CustomResourceReference(
             CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            db_cluster_id, namespace="default",
+            keyspace_name, namespace="default",
         )
         resource.create_custom_resource(ref, resource_data)
         resource.wait_resource_consumed_by_controller(ref)

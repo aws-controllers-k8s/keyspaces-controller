@@ -83,11 +83,11 @@ const (
 	TimeToLiveStatus_ENABLED TimeToLiveStatus = "ENABLED"
 )
 
-type TypeStatus string
+type TypeStatus_SDK string
 
 const (
-	TypeStatus_ACTIVE    TypeStatus = "ACTIVE"
-	TypeStatus_CREATING  TypeStatus = "CREATING"
-	TypeStatus_DELETING  TypeStatus = "DELETING"
-	TypeStatus_RESTORING TypeStatus = "RESTORING"
+	TypeStatus_SDK_ACTIVE    TypeStatus_SDK = "ACTIVE"
+	TypeStatus_SDK_CREATING  TypeStatus_SDK = "CREATING"
+	TypeStatus_SDK_DELETING  TypeStatus_SDK = "DELETING"
+	TypeStatus_SDK_RESTORING TypeStatus_SDK = "RESTORING"
 )
