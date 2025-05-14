@@ -1,0 +1,12 @@
+kind: Type
+apiVersion: keyspaces.services.k8s.aws/v1alpha1
+metadata:
+  name: $TYPE_NAME
+spec:
+  keyspaceName: $KEYSPACE_NAME
+  typeName: $TYPE_NAME
+  fieldDefinitions:
+    - name: "test_field1"
+      type_: "text"
+    - name: "test_field2"
+      type_: "int"

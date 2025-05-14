@@ -11,6 +11,7 @@ rules:
   resources:
   - keyspaces
   - tables
+  - types
   verbs:
   - create
   - delete
@@ -24,6 +25,7 @@ rules:
   resources:
   - keyspaces
   - tables
+  - types
   verbs:
   - get
   - patch
