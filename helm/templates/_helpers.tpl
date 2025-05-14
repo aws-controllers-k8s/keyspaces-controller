@@ -74,6 +74,7 @@ rules:
   resources:
   - keyspaces
   - tables
+  - types
   verbs:
   - create
   - delete
@@ -87,6 +88,7 @@ rules:
   resources:
   - keyspaces/status
   - tables/status
+  - types/status
   verbs:
   - get
   - patch
