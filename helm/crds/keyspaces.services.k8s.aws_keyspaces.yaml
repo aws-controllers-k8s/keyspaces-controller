@@ -40,7 +40,10 @@ spec:
             description: KeyspaceSpec defines the desired state of Keyspace.
             properties:
               keyspaceName:
-                description: The name of the keyspace to be created.
+                description: |-
+                  The name of the keyspace to be created.
+
+                  Regex Pattern: `^[a-zA-Z0-9][a-zA-Z0-9_]{0,47}$`
                 type: string
               replicationSpecification:
                 description: |-
@@ -165,6 +168,8 @@ spec:
                 description: |-
                   The unique identifier of the keyspace in the format of an Amazon Resource
                   Name (ARN).
+
+                  Regex Pattern: `^arn:(aws[a-zA-Z0-9-]*):cassandra:.+`
                 type: string
             type: object
         type: object

@@ -24,6 +24,8 @@ import (
 type KeyspaceSpec struct {
 
 	// The name of the keyspace to be created.
+	//
+	// Regex Pattern: `^[a-zA-Z0-9][a-zA-Z0-9_]{0,47}$`
 	// +kubebuilder:validation:Required
 	KeyspaceName *string `json:"keyspaceName"`
 	// The replication specification of the keyspace includes:
@@ -60,6 +62,8 @@ type KeyspaceStatus struct {
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
 	// The unique identifier of the keyspace in the format of an Amazon Resource
 	// Name (ARN).
+	//
+	// Regex Pattern: `^arn:(aws[a-zA-Z0-9-]*):cassandra:.+`
 	// +kubebuilder:validation:Optional
 	ResourceARN *string `json:"resourceARN,omitempty"`
 }
