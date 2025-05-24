@@ -66,6 +66,8 @@ type TableSpec struct {
 	// in the Amazon Keyspaces Developer Guide.
 	EncryptionSpecification *EncryptionSpecification `json:"encryptionSpecification,omitempty"`
 	// The name of the keyspace that the table is going to be created in.
+	//
+	// Regex Pattern: `^[a-zA-Z0-9][a-zA-Z0-9_]{0,47}$`
 	// +kubebuilder:validation:Required
 	KeyspaceName *string `json:"keyspaceName"`
 	// Specifies if pointInTimeRecovery is enabled or disabled for the table. The
@@ -115,6 +117,8 @@ type TableSpec struct {
 	// +kubebuilder:validation:Required
 	SchemaDefinition *SchemaDefinition `json:"schemaDefinition"`
 	// The name of the table.
+	//
+	// Regex Pattern: `^[a-zA-Z0-9][a-zA-Z0-9_]{0,47}$`
 	// +kubebuilder:validation:Required
 	TableName *string `json:"tableName"`
 	// A list of key-value pair tags to be attached to the resource.
