@@ -103,16 +103,16 @@ func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error 
 
 // PopulateResourceFromAnnotation populates the fields passed from adoption annotation
 func (r *resource) PopulateResourceFromAnnotation(fields map[string]string) error {
-	tmp, ok := fields["tableName"]
+	f0, ok := fields["keyspaceName"]
+	if !ok {
+		return ackerrors.NewTerminalError(fmt.Errorf("required field missing: keyspaceName"))
+	}
+	r.ko.Spec.KeyspaceName = &f0
+	f1, ok := fields["tableName"]
 	if !ok {
 		return ackerrors.NewTerminalError(fmt.Errorf("required field missing: tableName"))
 	}
-	r.ko.Spec.TableName = &tmp
-
-	f0, f0ok := fields["keyspaceName"]
-	if f0ok {
-		r.ko.Spec.KeyspaceName = aws.String(f0)
-	}
+	r.ko.Spec.TableName = &f1
 
 	return nil
 }
