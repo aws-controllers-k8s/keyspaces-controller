@@ -118,7 +118,7 @@ class TestTable:
 
         keyspace_name = res["spec"]["keyspaceName"]
         table_name = res["spec"]["tableName"]
-        condition.assert_synced(ref)
+        condition.assert_ready(ref)
 
         # Check Table exists
         assert self.table_exists(keyspace_name, table_name)

@@ -86,7 +86,7 @@ class TestKeyspace:
         (ref, res) = keyspace_basic
 
         keyspace_name = res["spec"]["keyspaceName"]
-        condition.assert_synced(ref)
+        condition.assert_ready(ref)
         
         # Check Keyspace exists
         assert self.keyspace_exists(keyspace_name)
