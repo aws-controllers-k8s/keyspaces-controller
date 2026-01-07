@@ -17,16 +17,15 @@ package table
 
 import (
 	"bytes"
-	"reflect"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
+	"k8s.io/apimachinery/pkg/api/equality"
 )
 
 // Hack to avoid import errors during build...
 var (
 	_ = &bytes.Buffer{}
-	_ = &reflect.Method{}
 	_ = &acktags.Tags{}
 )
 
@@ -139,28 +138,28 @@ func newResourceDelta(
 		if len(a.ko.Spec.SchemaDefinition.AllColumns) != len(b.ko.Spec.SchemaDefinition.AllColumns) {
 			delta.Add("Spec.SchemaDefinition.AllColumns", a.ko.Spec.SchemaDefinition.AllColumns, b.ko.Spec.SchemaDefinition.AllColumns)
 		} else if len(a.ko.Spec.SchemaDefinition.AllColumns) > 0 {
-			if !reflect.DeepEqual(a.ko.Spec.SchemaDefinition.AllColumns, b.ko.Spec.SchemaDefinition.AllColumns) {
+			if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.SchemaDefinition.AllColumns, b.ko.Spec.SchemaDefinition.AllColumns) {
 				delta.Add("Spec.SchemaDefinition.AllColumns", a.ko.Spec.SchemaDefinition.AllColumns, b.ko.Spec.SchemaDefinition.AllColumns)
 			}
 		}
 		if len(a.ko.Spec.SchemaDefinition.ClusteringKeys) != len(b.ko.Spec.SchemaDefinition.ClusteringKeys) {
 			delta.Add("Spec.SchemaDefinition.ClusteringKeys", a.ko.Spec.SchemaDefinition.ClusteringKeys, b.ko.Spec.SchemaDefinition.ClusteringKeys)
 		} else if len(a.ko.Spec.SchemaDefinition.ClusteringKeys) > 0 {
-			if !reflect.DeepEqual(a.ko.Spec.SchemaDefinition.ClusteringKeys, b.ko.Spec.SchemaDefinition.ClusteringKeys) {
+			if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.SchemaDefinition.ClusteringKeys, b.ko.Spec.SchemaDefinition.ClusteringKeys) {
 				delta.Add("Spec.SchemaDefinition.ClusteringKeys", a.ko.Spec.SchemaDefinition.ClusteringKeys, b.ko.Spec.SchemaDefinition.ClusteringKeys)
 			}
 		}
 		if len(a.ko.Spec.SchemaDefinition.PartitionKeys) != len(b.ko.Spec.SchemaDefinition.PartitionKeys) {
 			delta.Add("Spec.SchemaDefinition.PartitionKeys", a.ko.Spec.SchemaDefinition.PartitionKeys, b.ko.Spec.SchemaDefinition.PartitionKeys)
 		} else if len(a.ko.Spec.SchemaDefinition.PartitionKeys) > 0 {
-			if !reflect.DeepEqual(a.ko.Spec.SchemaDefinition.PartitionKeys, b.ko.Spec.SchemaDefinition.PartitionKeys) {
+			if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.SchemaDefinition.PartitionKeys, b.ko.Spec.SchemaDefinition.PartitionKeys) {
 				delta.Add("Spec.SchemaDefinition.PartitionKeys", a.ko.Spec.SchemaDefinition.PartitionKeys, b.ko.Spec.SchemaDefinition.PartitionKeys)
 			}
 		}
 		if len(a.ko.Spec.SchemaDefinition.StaticColumns) != len(b.ko.Spec.SchemaDefinition.StaticColumns) {
 			delta.Add("Spec.SchemaDefinition.StaticColumns", a.ko.Spec.SchemaDefinition.StaticColumns, b.ko.Spec.SchemaDefinition.StaticColumns)
 		} else if len(a.ko.Spec.SchemaDefinition.StaticColumns) > 0 {
-			if !reflect.DeepEqual(a.ko.Spec.SchemaDefinition.StaticColumns, b.ko.Spec.SchemaDefinition.StaticColumns) {
+			if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.SchemaDefinition.StaticColumns, b.ko.Spec.SchemaDefinition.StaticColumns) {
 				delta.Add("Spec.SchemaDefinition.StaticColumns", a.ko.Spec.SchemaDefinition.StaticColumns, b.ko.Spec.SchemaDefinition.StaticColumns)
 			}
 		}
