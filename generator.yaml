@@ -25,6 +25,11 @@ resources:
       Status:
         type: string
         is_read_only: true
+      EncryptionSpecification.KMSKeyIdentifier:
+        references:
+          resource: Key
+          service_name: kms
+          path: Status.ACKResourceMetadata.ARN
     exceptions:
       errors:
         404:

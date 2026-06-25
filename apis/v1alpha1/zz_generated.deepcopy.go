@@ -266,6 +266,11 @@ func (in *EncryptionSpecification) DeepCopyInto(out *EncryptionSpecification) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.KMSKeyIdentifierRef != nil {
+		in, out := &in.KMSKeyIdentifierRef, &out.KMSKeyIdentifierRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Type != nil {
 		in, out := &in.Type, &out.Type
 		*out = new(string)

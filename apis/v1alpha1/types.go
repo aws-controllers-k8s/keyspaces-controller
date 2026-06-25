@@ -249,7 +249,9 @@ type Comment struct {
 // in the Key Management Service Developer Guide.
 type EncryptionSpecification struct {
 	KMSKeyIdentifier *string `json:"kmsKeyIdentifier,omitempty"`
-	Type             *string `json:"type_,omitempty"`
+	// Reference field for KMSKeyIdentifier
+	KMSKeyIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"kmsKeyIdentifierRef,omitempty"`
+	Type                *string                                  `json:"type_,omitempty"`
 }
 
 // A field definition consists out of a name and a type.
