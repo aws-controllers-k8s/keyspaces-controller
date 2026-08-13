@@ -131,6 +131,23 @@ spec:
 
                   Regex Pattern: `^[a-zA-Z0-9][a-zA-Z0-9_]{0,47}$`
                 type: string
+              keyspaceRef:
+                description: "AWSResourceReferenceWrapper provides a wrapper around
+                  *AWSResourceReference\ntype to provide more user friendly syntax
+                  for references using 'from' field\nEx:\nAPIIDRef:\n\n\tfrom:\n\t
+                  \ name: my-api"
+                properties:
+                  from:
+                    description: |-
+                      AWSResourceReference provides all the values necessary to reference another
+                      k8s resource for finding the identifier(Id/ARN/Name)
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    type: object
+                type: object
               pointInTimeRecovery:
                 description: |-
                   Specifies if pointInTimeRecovery is enabled or disabled for the table. The
@@ -279,7 +296,6 @@ spec:
                     type: string
                 type: object
             required:
-            - keyspaceName
             - schemaDefinition
             - tableName
             type: object

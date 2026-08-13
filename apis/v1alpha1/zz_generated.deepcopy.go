@@ -866,6 +866,11 @@ func (in *TableSpec) DeepCopyInto(out *TableSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.KeyspaceRef != nil {
+		in, out := &in.KeyspaceRef, &out.KeyspaceRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.PointInTimeRecovery != nil {
 		in, out := &in.PointInTimeRecovery, &out.PointInTimeRecovery
 		*out = new(PointInTimeRecovery)

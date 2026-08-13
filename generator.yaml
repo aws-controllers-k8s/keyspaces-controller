@@ -25,6 +25,10 @@ resources:
       Status:
         type: string
         is_read_only: true
+      KeyspaceName:
+        references:
+          resource: Keyspace
+          path: Spec.KeyspaceName
       EncryptionSpecification.KMSKeyIdentifier:
         references:
           resource: Key

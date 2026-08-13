@@ -68,8 +68,8 @@ type TableSpec struct {
 	// The name of the keyspace that the table is going to be created in.
 	//
 	// Regex Pattern: `^[a-zA-Z0-9][a-zA-Z0-9_]{0,47}$`
-	// +kubebuilder:validation:Required
-	KeyspaceName *string `json:"keyspaceName"`
+	KeyspaceName *string                                  `json:"keyspaceName,omitempty"`
+	KeyspaceRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"keyspaceRef,omitempty"`
 	// Specifies if pointInTimeRecovery is enabled or disabled for the table. The
 	// options are:
 	//

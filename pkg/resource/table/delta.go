@@ -121,6 +121,9 @@ func newResourceDelta(
 			delta.Add("Spec.KeyspaceName", a.ko.Spec.KeyspaceName, b.ko.Spec.KeyspaceName)
 		}
 	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.KeyspaceRef, b.ko.Spec.KeyspaceRef) {
+		delta.Add("Spec.KeyspaceRef", a.ko.Spec.KeyspaceRef, b.ko.Spec.KeyspaceRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.PointInTimeRecovery, b.ko.Spec.PointInTimeRecovery) {
 		delta.Add("Spec.PointInTimeRecovery", a.ko.Spec.PointInTimeRecovery, b.ko.Spec.PointInTimeRecovery)
 	} else if a.ko.Spec.PointInTimeRecovery != nil && b.ko.Spec.PointInTimeRecovery != nil {
