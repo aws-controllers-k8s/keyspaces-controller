@@ -30,13 +30,12 @@ type KeyspaceSpec struct {
 	KeyspaceName *string `json:"keyspaceName"`
 	// The replication specification of the keyspace includes:
 	//
-	//   - replicationStrategy - the required value is SINGLE_REGION or MULTI_REGION.
+	//    * replicationStrategy - the required value is SINGLE_REGION or MULTI_REGION.
 	//
-	//   - regionList - if the replicationStrategy is MULTI_REGION, the regionList
-	//     requires the current Region and at least one additional Amazon Web Services
-	//     Region where the keyspace is going to be replicated in. The maximum number
-	//     of supported replication Regions including the current Region is six.
-	//
+	//    * regionList - if the replicationStrategy is MULTI_REGION, the regionList
+	//    requires the current Region and at least one additional Amazon Web Services
+	//    Region where the keyspace is going to be replicated in. The maximum number
+	//    of supported replication Regions including the current Region is six.
 	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	ReplicationSpecification *ReplicationSpecification `json:"replicationSpecification,omitempty"`
 	// A list of key-value pair tags to be attached to the keyspace.
